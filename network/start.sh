@@ -73,9 +73,9 @@ docker exec cli bash -c "$BENZPeer0Cli peer lifecycle chaincode checkcommitreadi
 echo "  提交链码定义"
 docker exec cli bash -c "$BENZPeer0Cli peer lifecycle chaincode commit -o orderer.carunion.com:7050 --channelID appchannel --name fabric-realty --version 1.0.0 --sequence 1 --waitForEvent --peerAddresses peer0.tesla.com:7051 --peerAddresses peer0.benz.com:7051"
 
-# echo "十一、初始化账本"
-# docker exec cli bash -c "$BENZPeer0Cli peer chaincode invoke -C appchannel -n fabric-realty -c '{\"Args\":[\"Init\"]}' --peerAddresses peer0.benz.com:7051 --peerAddresses peer0.tesla.com:7051"
+echo "十一、初始化账本"
+docker exec cli bash -c "$BENZPeer0Cli peer chaincode invoke -C appchannel -n fabric-realty -c '{\"Args\":[\"Init\"]}' --peerAddresses peer0.benz.com:7051 --peerAddresses peer0.tesla.com:7051"
 
-# echo "十二、验证链码"
-# docker exec cli bash -c "$BENZPeer0Cli peer chaincode invoke -C appchannel -n fabric-realty -c '{\"Args\":[\"hello\"]}'"
-# docker exec cli bash -c "$TESLAPeer0Cli peer chaincode invoke -C appchannel -n fabric-realty -c '{\"Args\":[\"hello\"]}'"
+echo "十二、验证链码"
+docker exec cli bash -c "$BENZPeer0Cli peer chaincode invoke -C appchannel -n fabric-realty -c '{\"Args\":[\"hello\"]}'"
+docker exec cli bash -c "$TESLAPeer0Cli peer chaincode invoke -C appchannel -n fabric-realty -c '{\"Args\":[\"hello\"]}'"
