@@ -1,0 +1,214 @@
+Organizations:
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: ../fabricconfig/crypto-config/ordererOrganizations/example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+    - &Org1
+        Name: Org1MSP
+        ID: Org1MSP
+        MSPDir: ../fabricconfig/crypto-config/peerOrganizations/org1.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org1MSP.admin', 'Org1MSP.peer', 'Org1MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org1MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org1MSP.peer')"
+        AnchorPeers:
+            - Host: peer0.org1.example.com
+              Port: 7051
+    - &Org2
+        Name: Org2MSP
+        ID: Org2MSP
+        MSPDir: ../fabricconfig/crypto-config/peerOrganizations/org2.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org2MSP.admin', 'Org2MSP.peer', 'Org2MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org2MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org2MSP.peer')"
+        AnchorPeers:
+            - Host: peer0.org2.example.com
+              Port: 7051
+Capabilities:
+    # Channel capabilities apply to both the orderers and the peers and must be
+    # supported by both.
+    # Set the value of the capability to true to require it.
+    Channel: &ChannelCapabilities
+        # V2.0 for Channel is a catchall flag for behavior which has been
+        # determined to be desired for all orderers and peers running at the v2.0.0
+        # level, but which would be incompatible with orderers and peers from
+        # prior releases.
+        # Prior to enabling V2.0 channel capabilities, ensure that all
+        # orderers and peers on a channel are at v2.0.0 or later.
+        V2_0: true
+
+    # Orderer capabilities apply only to the orderers, and may be safely
+    # used with prior release peers.
+    # Set the value of the capability to true to require it.
+    Orderer: &OrdererCapabilities
+        # V1.1 for Orderer is a catchall flag for behavior which has been
+        # determined to be desired for all orderers running at the v1.1.x
+        # level, but which would be incompatible with orderers from prior releases.
+        # Prior to enabling V2.0 orderer capabilities, ensure that all
+        # orderers on a channel are at v2.0.0 or later.
+        V2_0: true
+
+    # Application capabilities apply only to the peer network, and may be safely
+    # used with prior release orderers.
+    # Set the value of the capability to true to require it.
+    Application: &ApplicationCapabilities
+        # V2.0 for Application enables the new non-backwards compatible
+        # features and fixes of fabric v2.0.
+        # Prior to enabling V2.0 orderer capabilities, ensure that all
+        # orderers on a channel are at v2.0.0 or later.
+        V2_0: true
+
+Application: &ApplicationDefaults
+    Organizations:
+
+    # Policies defines the set of policies at this level of the config tree
+    # For Application policies, their canonical path is
+    #   /Channel/Application/<PolicyName>
+    Policies: &ApplicationDefaultPolicies
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
+    # Capabilities describes the application level capabilities, see the
+    # dedicated Capabilities section elsewhere in this file for a full
+    # description
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+    OrdererType: solo
+    Addresses:
+        - orderer.example.com:7050
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Kafka:
+        Brokers:
+            - 127.0.0.1:9092
+    Organizations:
+  # Policies defines the set of policies at this level of the config tree
+    # For Orderer policies, their canonical path is
+    #   /Channel/Orderer/<PolicyName>
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        # BlockValidation specifies what signatures must be included in the block
+        # from the orderer for the peer to validate it.
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+
+    # Capabilities describes the orderer level capabilities, see the
+    # dedicated Capabilities section elsewhere in this file for a full
+    # description
+    Capabilities:
+        <<: *OrdererCapabilities
+
+################################################################################
+#
+#   CHANNEL
+#
+#   This section defines the values to encode into a config transaction or
+#   genesis block for channel related parameters.
+#
+################################################################################
+Channel: &ChannelDefaults
+    # Policies defines the set of policies at this level of the config tree
+    # For Channel policies, their canonical path is
+    #   /Channel/<PolicyName>
+    Policies:
+        # Who may invoke the 'Deliver' API
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        # Who may invoke the 'Broadcast' API
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        # By default, who may modify elements at this config level
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
+
+    # Capabilities describes the channel level capabilities, see the
+    # dedicated Capabilities section elsewhere in this file for a full
+    # description
+    Capabilities:
+        <<: *ChannelCapabilities
+
+
+Profiles:
+    TestTwoOrgsOrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - <<: *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - <<: *Org1
+                    - <<: *Org2
+    TestTwoOrgsChannel:
+        <<: *ChannelDefaults
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+               - <<: *Org1
+               - <<: *Org2
+
