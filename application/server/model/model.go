@@ -44,3 +44,35 @@ var DonatingStatusConstant = func() map[string]string {
 		"done":          "完成",  //受赠人确认接收，交易完成
 	}
 }
+
+/*************** CERTIFICATE MANAGEMENT ******************/
+
+type AuthorityContactInfo struct {
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+	Address string `json:"address"`
+}
+
+type Certificate struct {
+	// hash
+	HashFile string `json:"hashFile"`
+	HashPath string `json:"hashPath"`
+	// metadata
+	CertID               string               `json:"certID"`
+	HoderID              string               `json:"hoderID"`
+	HoderName            string               `json:"hoderName"`
+	CertType             string               `json:"certType"`
+	IssueDate            string               `json:"issueDate"`
+	ExpiryDate           string               `json:"expiryDate"`
+	IssuingAuthority     string               `json:"issuingAuthority"`
+	AuthorityContactInfo AuthorityContactInfo `json:"authorityContactInfo"`
+	Status               string               `json:"status"`
+}
+
+var CertStatusConstant = func() map[string]string {
+	return map[string]string{
+		"valid":   "有效",  //正常的有效证书
+		"expired": "已过期", //针对有实效的证书类型，过了时效显示已过期状态
+		"invaild": "无效",  //已撤销（删除）证书
+	}
+}

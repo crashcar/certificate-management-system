@@ -1,9 +1,10 @@
 version: 1.0.0
 
-# GO SDK使用的客户端部分。
+# GO SDK使用的客户端部分
+############  证书系统  ############
 client:
   # 客户端所属的组织，必须是organizations定义的组织
-  organization: TESLA
+  organization: CERTMAN
   # 日志级别
   logging:
     level: info
@@ -15,14 +16,14 @@ client:
 channels:
   appchannel:
     orderers:
-      - orderer.carunion.com
+      - orderer.certmanorder.com
     peers:
-      peer0.tesla.com:
+      peer0.certman.com:
         endorsingPeer: true
         chaincodeQuery: true
         ledgerQuery: true
         eventSource: true
-      peer1.tesla.com:
+      peer1.certman.com:
         endorsingPeer: true
         chaincodeQuery: true
         ledgerQuery: true
@@ -30,20 +31,20 @@ channels:
 
 # 组织配置
 organizations:
-  TESLA:
-    mspid: "TESLAMSP"
-    cryptoPath: peerOrganizations/tesla.com/users/Admin@tesla.com/msp
+  CERTMAN:
+    mspid: "CERTMANMSP"
+    cryptoPath: peerOrganizations/certman.com/users/Admin@certman.com/msp
     peers:
-      - peer0.tesla.com
-      - peer1.tesla.com
+      - peer0.certman.com
+      - peer1.certman.com
 
 # orderer节点列表
 orderers:
-  orderer.carunion.com:
-    url: orderer.carunion.com:7050
+  orderer.certmanorder.com:
+    url: orderer.certmanorder.com:7050
     # 传递给gRPC客户端构造函数
     grpcOptions:
-      ssl-target-name-override: orderer.carunion.com
+      ssl-target-name-override: orderer.certman.com
       keep-alive-time: 0s
       keep-alive-timeout: 20s
       keep-alive-permit: false
@@ -53,39 +54,57 @@ orderers:
 # peers节点列表
 peers:
   # peer节点定义，可以定义多个
-  peer0.tesla.com:
+  peer0.certman.com:
     # URL用于发送背书和查询请求
-    url: peer0.tesla.com:7051
+    url: peer0.certman.com:7051
     # 传递给gRPC客户端构造函数
     grpcOptions:
-      ssl-target-name-override: peer0.tesla.com
+      ssl-target-name-override: peer0.certman.com
       keep-alive-time: 0s
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
       allow-insecure: true
-  peer1.tesla.com:
-    url: peer1.tesla.com:7051
+  peer1.certman.com:
+    url: peer1.certman.com:7051
     grpcOptions:
-      ssl-target-name-override: peer1.tesla.com
+      ssl-target-name-override: peer1.certman.com
       keep-alive-time: 0s
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
       allow-insecure: true
-  peer0.benz.com:
-    url: peer0.benz.com:7051
+  peer0.cet.com:
+    url: peer0.cet.com:7051
     grpcOptions:
-      ssl-target-name-override: peer0.benz.com
+      ssl-target-name-override: peer0.cet.com
       keep-alive-time: 0s
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
       allow-insecure: true
-  peer1.benz.com:
-    url: peer1.benz.com:7051
+  peer1.cet.com:
+    url: peer1.cet.com:7051
     grpcOptions:
-      ssl-target-name-override: peer1.benz.com
+      ssl-target-name-override: peer1.cet.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: true
+  peer0.ncre.com:
+    url: peer0.ncre.com:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.ncre.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: true
+  peer1.ncre.com:
+    url: peer1.ncre.com:7051
+    grpcOptions:
+      ssl-target-name-override: peer1.ncre.com
       keep-alive-time: 0s
       keep-alive-timeout: 20s
       keep-alive-permit: false
