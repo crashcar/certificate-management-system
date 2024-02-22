@@ -47,6 +47,14 @@ var DonatingStatusConstant = func() map[string]string {
 
 /*************** CERTIFICATE MANAGEMENT ******************/
 
+type User struct {
+	ID       string `gorm:"primary_key"` // 身份证号
+	RealName string `gorm:"not null"`    // 实名
+	Password string `gorm:"not null"`
+	Email    string `gorm:"not null"`
+	Role     int    `gorm:"default:0"` // 0--普通用户 1--管理员（机构中的角色，系统中全是用户）
+}
+
 type AuthorityContactInfo struct {
 	Phone   string `json:"phone"`
 	Email   string `json:"email"`

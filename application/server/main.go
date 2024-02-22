@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	v1 "application/api/v1"
 	"application/blockchain"
 	"application/pkg/cron"
 	"application/routers"
@@ -20,6 +21,12 @@ func main() {
 
 	blockchain.Init()
 	go cron.Init()
+
+	// 连接pg并创建users/userprofiles表格
+
+	if err := v1.InitUserdb(); err != nil {
+		log.Fatal("Failed to create tables:", err)
+	}
 
 	endPoint := fmt.Sprintf("0.0.0.0:%d", 8000)
 	server := &http.Server{

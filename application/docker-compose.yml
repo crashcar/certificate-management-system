@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.7'
 
 networks:
   fabric_network:
@@ -6,14 +6,47 @@ networks:
       name: fabric_network
 
 services:
-  fabric-realty.app:
+  certman.app:
     build: .
-    image: fabric-realty/application:latest
-    container_name: fabric-realty.app
+    image: certman/application:latest
+    container_name: certman.app
     ports:
       - "8000:8000"
+    depends_on:
+      - certman-db
+      - certman-ipfs
+    environment:
+      - IPFS_URL=http://certman-ipfs:5001 # 使用IPFS服务名称作为URL
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/usr/share/zoneinfo/Asia/Shanghai
       - ./../network/crypto-config:/network/crypto-config
+    networks:
+      - fabric_network
+
+  certman-db:
+    image: "postgres:latest"
+    container_name: certman-db
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U admin -d userdb"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "userdb"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "1234"
+    networks:
+      - fabric_network
+
+  certman-ipfs:
+    image: ipfs/go-ipfs:master-latest # 使用最新版本的IPFS镜像
+    ports:
+      - "5001:5001" # 映射API端口
+      - "8081:8080" # 映射网关端口
+    volumes:
+      - ./ipfs_staging:/export
+      - ./ipfs_data:/data/ipfs
     networks:
       - fabric_network

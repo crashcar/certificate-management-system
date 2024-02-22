@@ -1,63 +1,84 @@
 # 定义组织机构实体
 Organizations:
-  - &CARUNION
-    Name: CARUNION # 组织的名称
-    ID: CARUNIONMSP # 组织的 MSPID
-    MSPDir: crypto-config/ordererOrganizations/carunion.com/msp #组织的证书相对位置（生成的crypto-config目录)
+  - &CERTMANORDER
+    Name: CERTMANORDER # 组织的名称
+    ID: CERTMANORDERMSP # 组织的 MSPID
+    MSPDir: crypto-config/ordererOrganizations/certmanorder.com/msp #组织的证书相对位置（生成的crypto-config目录)
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('CARUNIONMSP.member')"
+        Rule: "OR('CERTMANORDERMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('CARUNIONMSP.member')"
+        Rule: "OR('CERTMANORDERMSP.admin')"
       Admins:
         Type: Signature
-        Rule: "OR('CARUNIONMSP.admin')"
+        Rule: "OR('CERTMANORDERMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('CARUNIONMSP.member')"
+        Rule: "OR('CERTMANORDERMSP.member')"
 
-  - &BENZ
-    Name: BENZ
-    ID: BENZMSP
-    MSPDir: crypto-config/peerOrganizations/benz.com/msp
+  - &CERTMAN
+    Name: CERTMAN
+    ID: CERTMANMSP
+    MSPDir: crypto-config/peerOrganizations/certman.com/msp
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('BENZMSP.member')"
+        Rule: "OR('CERTMANMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('BENZMSP.member')"
+        Rule: "OR('CERTMANMSP.admin')"
       Admins:
         Type: Signature
-        Rule: "OR('BENZMSP.admin')"
+        Rule: "OR('CERTMANMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('BENZMSP.member')"
+        Rule: "OR('CERTMANMSP.member')"
     AnchorPeers: # 组织锚节点的配置
-      - Host: peer0.benz.com
+      - Host: peer0.certman.com
         Port: 7051
 
-  - &TESLA
-    Name: TESLA
-    ID: TESLAMSP
-    MSPDir: crypto-config/peerOrganizations/tesla.com/msp
+  - &CET
+    Name: CET
+    ID: CETMSP
+    MSPDir: crypto-config/peerOrganizations/cet.com/msp
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('TESLAMSP.member')"
+        Rule: "OR('CERMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('TESLAMSP.member')"
+        Rule: "OR('CERMSP.admin')"
       Admins:
         Type: Signature
-        Rule: "OR('TESLAMSP.admin')"
+        Rule: "OR('CERMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('TESLAMSP.member')"
+        Rule: "OR('CERMSP.member')"
     AnchorPeers: # 组织锚节点的配置
-      - Host: peer0.tesla.com
+      - Host: peer0.cet.com
+        Port: 7051
+
+  - &NCRE
+    Name: NCRE
+    ID: NCREMSP
+    MSPDir: crypto-config/peerOrganizations/ncre.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('NCREMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('NCREMSP.admin')"
+      Admins:
+        Type: Signature
+        Rule: "OR('NCREMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('NCREMSP.member')"
+    AnchorPeers: # 组织锚节点的配置
+      - Host: peer0.ncre.com
         Port: 7051
 
 ################################################################################
@@ -236,29 +257,31 @@ Channel: &ChannelDefaults
 Profiles:
   #  TwoOrgsOrdererGenesis配置文件用于创建系统通道创世块
   #  该配置文件创建一个名为SampleConsortium的联盟
-  #  该联盟在configtx.yaml文件中包含两个Peer组织BENZ和TESLA
-  TwoOrgsOrdererGenesis:
+  #  该联盟在configtx.yaml文件中包含两个Peer组织
+  ThreeOrgsOrdererGenesis:
     <<: *ChannelDefaults
     Orderer:
       <<: *OrdererDefaults
       OrdererType: solo
       Addresses: # Orderer 的域名（用于连接）
-        - orderer.carunion.com:7050
+        - orderer.certmanorder.com:7050
       Organizations:
-        - *CARUNION
+        - *CERTMANORDER
       Capabilities: *OrdererCapabilities
     Consortiums:
       SampleConsortium:
         Organizations:
-          - *BENZ
-          - *TESLA
+          - *CERTMAN
+          - *CET
+          - *NCRE
   
   # 使用TwoOrgsChannel配置文件创建应用程序通道
-  TwoOrgsChannel:
+  ThreeOrgsChannel:
     <<: *ChannelDefaults
     Consortium: SampleConsortium
     Application:
       <<: *ApplicationDefaults
       Organizations:
-        - *BENZ
-        - *TESLA
+        - *CERTMAN
+        - *CET
+        - *NCRE
