@@ -27,8 +27,8 @@ import Layout from '@/layout'
 
 /**
  * constantRoutes
- * a base page that does not have permission requirements
- * all roles can be accessed
+ * a base page that does not have permission requirements, 无需权限的基础页面
+ * all roles can be accessed, 所有角色都可以访问
  */
 export const constantRoutes = [{
   path: '/login',
@@ -49,10 +49,10 @@ export const constantRoutes = [{
   children: [{
     path: 'realestate',
     name: 'Realestate',
-    component: () => import('@/views/realestate/list/index'),
+    component: () => import('@/views/realestate/list/index'),// 异步加载商品列表页面组件
     meta: {
-      title: '商品信息',
-      icon: 'realestate'
+      title: '商品信息', // 在侧边栏和面包屑中显示的名称
+      icon: 'realestate' // 侧边栏中显示的图标
     }
   }]
 }
@@ -60,7 +60,7 @@ export const constantRoutes = [{
 
 /**
  * asyncRoutes
- * the routes that need to be dynamically loaded based on user roles
+ * the routes that need to be dynamically loaded based on user roles, 基于用户角色动态加载的路由
  */
 export const asyncRoutes = [
   {

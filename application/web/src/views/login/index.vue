@@ -3,7 +3,7 @@
     <el-form ref="loginForm" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">基于区块链的商品溯源系统</h3>
+        <h3 class="title">基于联盟链的电子证书管理系统</h3>
       </div>
       <el-select v-model="value" placeholder="请选择用户角色" class="login-select" @change="selectGet">
         <el-option
@@ -49,11 +49,18 @@ export default {
     }
   },
   created() {
-    queryAccountList().then(response => {
-      if (response !== null) {
-        this.accountList = response
-      }
-    })
+    // queryAccountList().then(response => {
+    //   if (response !== null) {
+    //     this.accountList = response
+    //   }
+    // })
+    this.accountList = [
+  { accountId: 1, userName: '管理员' },
+  { accountId: 2, userName: '①号客户' },
+  { accountId: 3, userName: '②号客户' },
+  { accountId: 4, userName: '③号客户' },
+  { accountId: 5, userName: '④号客户' },
+  { accountId: 6, userName: '⑤号客户' }]
   },
   methods: {
     handleLogin() {

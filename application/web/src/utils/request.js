@@ -25,7 +25,7 @@ service.interceptors.response.use(
   error => {
     if (error.response === undefined) {
       Message({
-        message: '请求失败 ' + error.message,
+        message: '网络请求失败 ' + error.message,
         type: 'error',
         duration: 5 * 1000
       })
