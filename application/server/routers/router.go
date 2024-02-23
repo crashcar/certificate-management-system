@@ -28,6 +28,9 @@ func InitRouter() *gin.Engine {
 		apiV1.POST("/updateDonating", v1.UpdateDonating)
 		apiV1.POST("/register", v1.Register)
 		apiV1.POST("/login", v1.Login)
+		apiV1.POST("/userLogin", v1.UserLogin)
+		apiV1.POST("/userRegister", v1.UserRegister)
+
 	}
 	// 静态文件路由
 	r.StaticFS("/web", http.Dir("./dist/"))
