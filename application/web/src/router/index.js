@@ -36,6 +36,12 @@ export const constantRoutes = [{
   hidden: true
 },
 
+  {
+    path: '/register',
+    component: () => import('@/views/register/index'), // 异步加载注册页面组件
+    hidden: true
+  },
+
 {
   path: '/404',
   component: () => import('@/views/404'),

@@ -86,10 +86,12 @@ func UserRegister(c *gin.Context) {
 
 	if flag {
 		// 假设验证通过并且用户成功注册，返回成功消息
+		log.Println(TAG + "注册成功")
 		appG.Response(http.StatusOK, "注册成功", "Register_Success")
 		return
 	} else {
 		// 假设验证失败，返回失败消息
+		log.Println(TAG + "注册失败")
 		appG.Response(http.StatusBadRequest, "注册失败", "Register_Fail")
 		return
 	}

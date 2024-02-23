@@ -15,7 +15,7 @@ import getPageTitle from '@/utils/get-page-title'
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 // 定义一个白名单数组，表示不需要登录即可访问的页面路径。
-const whiteList = ['/login'] // no redirect whitelist
+const whiteList = ['/login',"/register"] // no redirect whitelist
 
 
 // 注册全局前置守卫，在路由导航之前执行相关操作。
