@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"application/pkg/app"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -25,6 +26,7 @@ type RegistrationRequest struct {
 
 // UserLogin 注册
 func UserLogin(c *gin.Context) {
+	appG := app.Gin{C: c}
 	var loginReq LoginRequest
 
 	// 尝试解析请求体到loginReq结构体
@@ -41,24 +43,25 @@ func UserLogin(c *gin.Context) {
 	log.Println(TAG + "ID: " + loginReq.ID + ", Password: " + loginReq.Password)
 
 	// TODO: 查询身份信息数据库 比对数据
-	dbUserID := "340881200101010101"
-	dbUserPassword := "b426b426"
+	dbUserID := "1"
+	dbUserPassword := "1"
 
 	if loginReq.ID == dbUserID && loginReq.Password == dbUserPassword {
 		// login 成功，返回成功消息
-		c.JSON(http.StatusOK, gin.H{
-			"msg": "Login_Success",
-		})
+		log.Println(TAG + "登录成功")
+		appG.Response(http.StatusOK, "登录成功", "Login_Success")
+		return
 	} else {
 		// login 失败，返回失败消息
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Login_Fail",
-		})
+		log.Println(TAG + "登录失败")
+		appG.Response(http.StatusBadRequest, "登录失败", "Login_Fail")
+		return
 	}
 }
 
 // UserRegister 处理用户注册请求
 func UserRegister(c *gin.Context) {
+	appG := app.Gin{C: c}
 	var regReq RegistrationRequest
 
 	// 尝试将请求体解析到RegistrationRequest结构体中
@@ -75,7 +78,7 @@ func UserRegister(c *gin.Context) {
 
 	// TODO: 此处应添加验证逻辑，例如验证ID是否已存在
 	var flag bool
-	if regReq.ID == "340881200101010101" {
+	if regReq.ID == "1" {
 		flag = true
 	} else {
 		flag = false
@@ -83,14 +86,12 @@ func UserRegister(c *gin.Context) {
 
 	if flag {
 		// 假设验证通过并且用户成功注册，返回成功消息
-		c.JSON(http.StatusOK, gin.H{
-			"msg": "Register_Success",
-		})
+		appG.Response(http.StatusOK, "注册成功", "Register_Success")
+		return
 	} else {
 		// 假设验证失败，返回失败消息
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Register_Fail",
-		})
+		appG.Response(http.StatusBadRequest, "注册失败", "Register_Fail")
+		return
 	}
 
 }
