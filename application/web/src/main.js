@@ -4,9 +4,6 @@ import Vue from 'vue'
 // 导入 normalize.css 库，用于提供现代化的 CSS 重置样式。
 import 'normalize.css/normalize.css' // A modern alternative to CSS resets
 
-// 导入 Element UI 库，用于提供基于 Vue 的 UI 组件。同时也可以导入对应的样式文件。
-import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
 // import locale from 'element-ui/lib/locale/lang/en' // lang i18n
 
 // 导入全局的 SCSS 样式文件，用于定义项目的全局样式。
@@ -39,8 +36,10 @@ import '@/permission' // permission control
 // Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明
 
-// 全局注册 Element UI 插件，使其可以在 Vue 实例中使用 Element UI 的组件。
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
 Vue.use(ElementUI)
+
 
 // 关闭生产环境的提示信息，避免在控制台输出一些无用的提示。
 Vue.config.productionTip = false

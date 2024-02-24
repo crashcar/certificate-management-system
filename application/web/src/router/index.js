@@ -3,82 +3,79 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-/* Layout */
-// import Layout from '@/layout'
-
-/**
- * Note: sub-menu only appear when route children.length >= 1
- * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
- *
- * hidden: true                   if set true, item will not show in the sidebar(default is false)
- * alwaysShow: true               if set true, will always show the root menu
- *                                if not set alwaysShow, when item has more than one children route,
- *                                it will becomes nested mode, otherwise not show the root menu
- * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
- * name:'router-name'             the name is used by <keep-alive> (must set!!!)
- * meta : {
-    roles: ['admin','editor']    control the page roles (you can set multiple roles)
-    title: 'title'               the name show in sidebar and breadcrumb (recommend set)
-    icon: 'svg-name'             the icon show in the sidebar
-    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
-    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
-  }
- */
-
-/**
- * constantRoutes
- * a base page that does not have permission requirements, 无需权限的基础页面
- * all roles can be accessed, 所有角色都可以访问
- */
-export const constantRoutes = [{
-  path: '/login',
-  component: () => import('@/views/login/index'),
-  hidden: true
-},
-
+// 路由定义
+const routes = [
+  {
+    path: '/login',
+    component: () => import('@/views/login/index'),
+    hidden: true
+  },
   {
     path: '/register',
-    component: () => import('@/views/register/index'), // 异步加载注册页面组件
+    component: () => import('@/views/register/index'),
     hidden: true
   },
 
-{
-  path: '/404',
-  component: () => import('@/views/404'),
-  hidden: true
-},
-
-]
-
-/**
- * asyncRoutes
- * the routes that need to be dynamically loaded based on user roles, 基于用户角色动态加载的路由
- */
-export const asyncRoutes = [
-
-  // 404 page must be placed at the end !!!
   {
-    path: '*',
-    redirect: '/404',
+    path: '/user',
+    redirect: '/user/certificates',
+    component: () => import('@/views/user/layout/index'),
+    meta: { role: 'user' },
+    children: [
+      {
+        path: 'certificates',
+        component: () => import('@/views/user/certificates/index'),
+        name: 'certificates',
+        meta: { title: '我的证书' }
+      },
+      {
+        path: 'apply',
+        component: () => import('@/views/user/apply/index'),
+        name: 'apply',
+        meta: { title: '证书申请' }
+      },
+      {
+        path: 'other-certs',
+        component: () => import('@/views/user/otherCerts/index'),
+        name: 'OtherCerts',
+        meta: { title: '其他机构证书' }
+      },
+      {
+        path: 'profile',
+        component: () => import('@/views/user/profile/index'),
+        name: 'Profile',
+        meta: { title: '个人信息页面' }
+      }
+    ]
+  },
+
+  {    path: '/admin',
+    component: () => import('@/views/admin/layout/index'),
+    meta: { role: 'admin' },
     hidden: true
-  }
+  },
+  {
+    path: '/404',
+    component: () => import('@/views/404'),
+    hidden: true
+  },
+  { path: '*', redirect: '/404', hidden: true }
 ]
 
-const createRouter = () => new Router({
+const router = new Router({
   base: '/web',
-  // mode: 'history', // require service support
-  scrollBehavior: () => ({
-    y: 0
-  }),
-  routes: constantRoutes
+  routes
 })
 
-const router = createRouter()
-
-// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
-export function resetRouter() {
-  const newRouter = createRouter()
-  router.matcher = newRouter.matcher // reset router
-}
+router.beforeEach((to, from, next) => {
+  const userRole = localStorage.getItem('user_role')
+  if (!userRole && to.path !== '/login' && to.path !== '/register') {
+    next('/login')
+  } else if (to.meta.role && to.meta.role !== userRole) {
+    next('/404')
+  } else {
+    next()
+  }
+})
 
 export default router

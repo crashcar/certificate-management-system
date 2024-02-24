@@ -15,50 +15,38 @@ import getPageTitle from '@/utils/get-page-title'
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 // 定义一个白名单数组，表示不需要登录即可访问的页面路径。
-const whiteList = ['/login',"/register"] // no redirect whitelist
+const whiteList = ['/login',"/register","/404"] // no redirect whitelist
 
 
 // 注册全局前置守卫，在路由导航之前执行相关操作。
 router.beforeEach(async (to, from, next) => {
-  // start progress bar
+  // 开始进度条...
   NProgress.start()
 
-  // set page title
+  // 设置页面标题...
   document.title = getPageTitle(to.meta.title)
 
-  // determine whether the user has logged in
-  // 判断用户是否已登录，根据用户登录状态执行不同的操作：
-  // const hasToken = getToken()
   const hasToken = window.localStorage.getItem('user_id')
+  const role = window.localStorage.getItem('user_role')
 
-  // 如果已登录：
-  //      如果要前往的页面是登录页面，直接重定向到首页。
-  //      否则，判断用户是否已获取权限角色信息：
-  //          如果已获取角色信息，继续路由导航。
-  //          否则，调用 account/getInfo 获取用户信息，并根据角色生成可访问的路由表。
-  // 如果未登录：
-  //       如果要前往的页面在白名单中，直接继续路由导航。
-  //       否则，重定向到登录页面，并携带当前页面路径作为重定向参数。
-
-  if (hasToken) {
-    console.log("has token")
-    // if (to.path === '/login') {
-    //   // if is logged in, redirect to the home page
-    //   next({
-    //     path: '/'
-    //   })
-    //   NProgress.done()
-    // }
-
-  } else {
-    /* has no token*/
-    console.log("has no token")
-    if (whiteList.indexOf(to.path) !== -1) {
-      // in the free login whitelist, go directly
-      next()
+  // 已登录状态的处理逻辑
+  if (hasToken!==null && role!==null) {
+    // console.log("已登录: "+hasToken+ " "+ role)
+    if (to.path === '/login') {
+      // 如果已登录且在访问登录页面，则根据角色重定向
+      next({ path: '/' + role })
+      NProgress.done()
     } else {
-      // other pages that do not have permission to access are redirected to the login page.
-      next(`/login?redirect=${to.path}`)
+      // 对于其他路径，可以添加更多的角色检查和重定向逻辑
+      next() // 直接放行
+    }
+  } else {
+    // 未登录状态的处理逻辑
+    console.log("未登录: ")
+    if (whiteList.indexOf(to.path) !== -1) {
+      next() // 白名单路径放行
+    } else {
+      next(`/login`) // 重定向到登录页
       NProgress.done()
     }
   }

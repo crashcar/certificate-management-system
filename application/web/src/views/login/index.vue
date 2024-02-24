@@ -61,11 +61,24 @@ export default {
       console.log(loginData)
       userLogin(loginData).then(res=> { // 调用登录API
         this.loading = false; // 停止加载
-        if (res.data === 'Login_Success') { // 登录成功
+        if (res.msg === 'Login_Success') { // 登录成功
           console.log("登录成功, 跳转主页")
-          // window.localStorage.setItem('user_id', "340881");
-          // const userId = localStorage.getItem('user_id');
 
+          const user_id=res.data.user_id;
+          const user_role=res.data.user_role;
+
+          window.localStorage.setItem('user_id', user_id);
+          window.localStorage.setItem('user_role', user_role);
+
+          // 根据角色跳转到相应的页面
+          if (user_role === 'admin') {
+            this.$router.push({ path: '/admin' }); // 为管理员跳转到管理员主页
+          } else if (user_role === 'user') {
+            this.$router.push({ path: '/user' }); // 为普通用户跳转到用户主页
+          } else {
+            // 可以处理其他角色或默认跳转逻辑
+            this.$router.push({ path: '/' });
+          }
         } else {
           // 这里可以处理登录失败的逻辑，比如显示错误消息
           console.error('登录失败:', res.data);

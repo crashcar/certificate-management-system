@@ -1,0 +1,280 @@
+<template>
+  <el-container class="container">
+    <el-aside class="aside" :width="isCollapse ? '64px' : '200px'">
+      <!-- 侧边栏头部，包含logo和小组名称 -->
+      <el-menu
+          unique-opened
+          text-color="#fff"
+          active-text-color="#ffd04b"
+          router
+          mode="vertical"
+          :default-active="defaultActive"
+      >
+        <el-menu-item index="/user/certificates">
+          <i class="el-icon-document"></i>
+          <span slot="title" v-show="!isCollapse">我的证书</span>
+        </el-menu-item>
+        <el-menu-item index="/user/apply">
+          <i class="el-icon-edit"></i>
+          <span slot="title" v-show="!isCollapse">证书申请</span>
+        </el-menu-item>
+        <el-menu-item index="/user/other-certs">
+          <i class="el-icon-reading"></i>
+          <span slot="title" v-show="!isCollapse">其他机构证书</span>
+        </el-menu-item>
+        <el-menu-item index="/user/profile">
+          <i class="el-icon-user"></i>
+          <span slot="title" v-show="!isCollapse">个人信息页面</span>
+        </el-menu-item>
+      </el-menu>
+    </el-aside>
+
+    <el-container>
+      <el-header class="custom-header">
+        <div class="left">
+          <el-button type="text" class="collapse-btn" @click="toggleCollapse">
+            <i class="el-icon-s-fold icon-size" v-if="isCollapse"></i>
+            <i class="el-icon-s-unfold icon-size" v-else></i>
+          </el-button>
+        </div>
+        <div class="right">
+          <el-button type="info" @click="logout" >退出登录</el-button>
+        </div>
+      </el-header>
+      <el-main>
+        <router-view></router-view>
+      </el-main>
+    </el-container>
+
+  </el-container>
+</template>
+
+<script>
+export default {
+  name: 'Layout',
+  data() {
+    return {
+      isCollapse: false, // 控制侧边栏展开折叠
+      defaultActive: '/user/certificates', // 默认选中的菜单项索引
+    };
+  },
+  methods: {
+    toggleCollapse() {
+      this.isCollapse = !this.isCollapse;
+    },
+    // 你可以添加一些方法
+    logout() {
+      // 退出登录逻辑
+      console.log('退出登录');
+
+      // 清空localStorage中的所有数据
+      localStorage.clear();
+
+      // 重定向到登录页
+      this.$router.push('/login');
+    }
+  },
+};
+</script>
+
+<style scoped>
+
+.icon-size {
+  font-size: 25px;
+}
+.container {
+  display: flex;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.aside {
+  /* Sidebar styles */
+}
+
+.custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff; /* New background color */
+  height: 50px; /* Adjusted height */
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  margin-left: 20px; /* Adjusted margin */
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* Adjusted margin */
+}
+
+.collapse-btn {
+  color: #fff; /* Button text color */
+  cursor: pointer;
+}
+
+.logout-btn {
+  color: #fff; /* Button text color */
+  border: none; /* Remove border */
+  font-size: 14px; /* Adjust font size */
+  cursor: pointer;
+  padding: 0; /* Adjust padding */
+}
+
+.logout-btn:hover {
+  text-decoration: underline; /* Underline on hover */
+}
+
+.logoCollapse {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 4px 0px 10px 0;
+}
+
+.logoNoCollapse {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 4px 0px 10px 16px;
+}
+
+.logoNoCollapse h1 {
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  margin: 20px 27px 20px 13px;
+}
+
+.el-main {
+  background-color: #f9f9f9;
+}
+
+.avatar-container {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.user {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 16px;
+}
+
+i.el-icon {
+  margin-right: 10px;
+}
+
+.user i {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.el-menu {
+  border-right: 0;
+  height: 100%;
+  background-color: #001529;
+}
+
+.el-menu-item {
+  background-color: #001529;
+}
+
+.el-menu-item:hover,
+:deep(.el-menu-item:active) {
+  background-color: #0960bd !important;
+}
+
+:deep(.el-sub-menu:hover) {
+  background-color: #0c2135 !important;
+}
+
+:deep(.el-sub-menu__title:hover) {
+  background-color: #0c2135 !important;
+}
+
+.el-menu-item.is-active {
+  background-color: #0960bd !important;
+}
+
+.el-menu-vertical-demo:not(.el-menu--collapse) {
+  width: 200px;
+  min-height: 400px;
+}
+
+main.el-main {
+  padding: 0px 0px;
+}
+
+:deep(header.el-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  height: 42px;
+  margin-bottom: 15px;
+}
+
+header.el-header .left {
+  display: flex;
+  align-items: center;
+}
+
+header.el-header i.el-icon[data-v-8a54e678] {
+  cursor: pointer;
+}
+
+header.el-header .right {
+  display: flex;
+  align-items: center;
+}
+
+header.el-header .right .usr {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+span.el-avatar.el-avatar--circle {
+  margin: 0 6px;
+  font-size: 16px;
+}
+
+header.el-header .right .usr span {
+  margin: 0 6px;
+  font-size: 16px;
+}
+
+header.el-header i.el-icon {
+  color: #6a748b;
+  font-size: 21px;
+}
+
+header.el-header h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6a748b;
+  margin-left: 10px;
+}
+
+.routerView {
+  padding: 0px 15px;
+}
+
+.toggle-button {
+  cursor: pointer;
+  color: #fff; /* 根据需要调整颜色 */
+}
+
+.el-menu-item .el-icon-document {
+  width: 16px; /* Adjusted width for the document icon */
+}
+</style>
