@@ -1,6 +1,6 @@
 // 导入 Vue Router 实例和 Vuex Store 实例，用于路由管理和状态管理。
 import router from './router'
-import store from './store'
+// import store from './store'
 
 // 导入 Element UI 的 Message 组件和 NProgress 进度条库，用于显示提示信息和页面加载进度条。
 import { Message } from 'element-ui'
@@ -28,8 +28,8 @@ router.beforeEach(async (to, from, next) => {
 
   // determine whether the user has logged in
   // 判断用户是否已登录，根据用户登录状态执行不同的操作：
-  const hasToken = getToken()
-
+  // const hasToken = getToken()
+  const hasToken = window.localStorage.getItem('user_id')
 
   // 如果已登录：
   //      如果要前往的页面是登录页面，直接重定向到首页。
@@ -41,47 +41,18 @@ router.beforeEach(async (to, from, next) => {
   //       否则，重定向到登录页面，并携带当前页面路径作为重定向参数。
 
   if (hasToken) {
-    if (to.path === '/login') {
-      // if is logged in, redirect to the home page
-      next({
-        path: '/'
-      })
-      NProgress.done()
-    } else {
-      // determine whether the user has obtained his permission roles through getInfo
-      const hasRoles = store.getters.roles && store.getters.roles.length > 0
-      if (hasRoles) {
-        next()
-      } else {
-        try {
-          // get user info
-          // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
-          var roles = await store.dispatch('account/getInfo')
+    console.log("has token")
+    // if (to.path === '/login') {
+    //   // if is logged in, redirect to the home page
+    //   next({
+    //     path: '/'
+    //   })
+    //   NProgress.done()
+    // }
 
-          // generate accessible routes map based on roles
-          const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-
-          // dynamically add accessible routes
-          router.addRoutes(accessRoutes)
-
-          // hack method to ensure that addRoutes is complete
-          // set the replace: true, so the navigation will not leave a history record
-          next({
-            ...to,
-            replace: true
-          })
-        } catch (error) {
-          // remove token and go to login page to re-login
-          await store.dispatch('account/resetToken')
-          Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)
-          NProgress.done()
-        }
-      }
-    }
   } else {
     /* has no token*/
-
+    console.log("has no token")
     if (whiteList.indexOf(to.path) !== -1) {
       // in the free login whitelist, go directly
       next()

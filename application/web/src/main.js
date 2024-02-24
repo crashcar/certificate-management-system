@@ -15,7 +15,7 @@ import '@/styles/index.scss' // global css
 // 导入根组件 App.vue。
 import App from './App'
 // 分别导入 Vuex 状态管理库和 Vue Router 路由配置。
-import store from './store'
+// import store from './store'
 import router from './router'
 
 // 导入自定义的 icon 图标和权限控制模块。
@@ -53,6 +53,6 @@ Vue.config.productionTip = false
 new Vue({
   el: '#app',
   router,
-  store,
+  // store,
   render: h => h(App)
 })

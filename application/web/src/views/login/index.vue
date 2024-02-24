@@ -63,6 +63,9 @@ export default {
         this.loading = false; // 停止加载
         if (res.data === 'Login_Success') { // 登录成功
           console.log("登录成功, 跳转主页")
+          // window.localStorage.setItem('user_id', "340881");
+          // const userId = localStorage.getItem('user_id');
+
         } else {
           // 这里可以处理登录失败的逻辑，比如显示错误消息
           console.error('登录失败:', res.data);

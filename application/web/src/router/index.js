@@ -4,7 +4,7 @@ import Router from 'vue-router'
 Vue.use(Router)
 
 /* Layout */
-import Layout from '@/layout'
+// import Layout from '@/layout'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -48,20 +48,6 @@ export const constantRoutes = [{
   hidden: true
 },
 
-{
-  path: '/',
-  component: Layout,
-  redirect: '/realestate',
-  children: [{
-    path: 'realestate',
-    name: 'Realestate',
-    component: () => import('@/views/realestate/list/index'),// 异步加载商品列表页面组件
-    meta: {
-      title: '商品信息', // 在侧边栏和面包屑中显示的名称
-      icon: 'realestate' // 侧边栏中显示的图标
-    }
-  }]
-}
 ]
 
 /**
@@ -69,102 +55,6 @@ export const constantRoutes = [{
  * the routes that need to be dynamically loaded based on user roles, 基于用户角色动态加载的路由
  */
 export const asyncRoutes = [
-  {
-    path: '/selling',
-    component: Layout,
-    redirect: '/selling/all',
-    name: 'Selling',
-    alwaysShow: true,
-    meta: {
-      title: '销售',
-      icon: 'selling'
-    },
-    children: [{
-      path: 'all',
-      name: 'SellingAll',
-      component: () => import('@/views/selling/all/index'),
-      meta: {
-        title: '所有销售',
-        icon: 'sellingAll'
-      }
-    },
-    {
-      path: 'me',
-      name: 'SellingMe',
-      component: () => import('@/views/selling/me/index'),
-      meta: {
-        roles: ['editor'],
-        title: '我发起的',
-        icon: 'sellingMe'
-      }
-    }, {
-      path: 'buy',
-      name: 'SellingBuy',
-      component: () => import('@/views/selling/buy/index'),
-      meta: {
-        roles: ['editor'],
-        title: '我购买的',
-        icon: 'sellingBuy'
-      }
-    }
-    ]
-  },
-  {
-    path: '/donating',
-    component: Layout,
-    redirect: '/donating/all',
-    name: 'Donating',
-    alwaysShow: true,
-    meta: {
-      title: '捐赠',
-      icon: 'donating'
-    },
-    children: [{
-      path: 'all',
-      name: 'DonatingAll',
-      component: () => import('@/views/donating/all/index'),
-      meta: {
-        title: '所有捐赠',
-        icon: 'donatingAll'
-      }
-    },
-    {
-      path: 'donor',
-      name: 'DonatingDonor',
-      component: () => import('@/views/donating/donor/index'),
-      meta: {
-        roles: ['editor'],
-        title: '我发起的捐赠',
-        icon: 'donatingDonor'
-      }
-    }, {
-      path: 'grantee',
-      name: 'DonatingGrantee',
-      component: () => import('@/views/donating/grantee/index'),
-      meta: {
-        roles: ['editor'],
-        title: '我收到的受赠',
-        icon: 'donatingGrantee'
-      }
-    }
-    ]
-  },
-  {
-    path: '/addRealestate',
-    component: Layout,
-    meta: {
-      roles: ['admin']
-    },
-    children: [{
-      path: '/addRealestate',
-      name: 'AddRealestate',
-      component: () => import('@/views/realestate/add/index'),
-      meta: {
-        title: '新增商品',
-        icon: 'addRealestate'
-      }
-    }]
-  },
 
   // 404 page must be placed at the end !!!
   {
