@@ -43,18 +43,23 @@ func UserLogin(c *gin.Context) {
 	log.Println(TAG + "ID: " + loginReq.ID + ", Password: " + loginReq.Password)
 
 	// TODO: 查询身份信息数据库 比对数据
-	dbUserID := "1"
-	dbUserPassword := "1"
+	var dbUserID = "1"
+	var dbUserPassword = "1"
+	var dbUserRole = "user"
 
 	if loginReq.ID == dbUserID && loginReq.Password == dbUserPassword {
 		// login 成功，返回成功消息
 		log.Println(TAG + "登录成功")
-		appG.Response(http.StatusOK, "登录成功", "Login_Success")
+		loginSuccessInfo := map[string]interface{}{
+			"user_id":   dbUserID,
+			"user_role": dbUserRole,
+		}
+		appG.Response(http.StatusOK, "Login_Success", loginSuccessInfo)
 		return
 	} else {
 		// login 失败，返回失败消息
 		log.Println(TAG + "登录失败")
-		appG.Response(http.StatusBadRequest, "登录失败", "Login_Fail")
+		appG.Response(http.StatusBadRequest, "Login_Fail", "Login_Fail")
 		return
 	}
 }
@@ -87,12 +92,12 @@ func UserRegister(c *gin.Context) {
 	if flag {
 		// 假设验证通过并且用户成功注册，返回成功消息
 		log.Println(TAG + "注册成功")
-		appG.Response(http.StatusOK, "注册成功", "Register_Success")
+		appG.Response(http.StatusOK, "Register_Success", "Register_Success")
 		return
 	} else {
 		// 假设验证失败，返回失败消息
 		log.Println(TAG + "注册失败")
-		appG.Response(http.StatusBadRequest, "注册失败", "Register_Fail")
+		appG.Response(http.StatusBadRequest, "Register_Fail", "Register_Fail")
 		return
 	}
 
