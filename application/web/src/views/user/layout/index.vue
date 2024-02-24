@@ -2,6 +2,16 @@
   <el-container class="container">
     <el-aside class="aside" :width="isCollapse ? '64px' : '200px'">
       <!-- 侧边栏头部，包含logo和小组名称 -->
+      <div class="aside-header">
+        <el-avatar
+            v-if="!isCollapse"
+        src="https://xzj-pic-1306183757.cos.ap-nanjing.myqcloud.com/picgo/摘月白底.jpg"
+        :size="38"
+        alt=""
+        ></el-avatar>
+        <h1 class="aside-title" v-if="!isCollapse">证书系统</h1>
+      </div>
+
       <el-menu
           unique-opened
           text-color="#fff"
@@ -33,12 +43,26 @@
       <el-header class="custom-header">
         <div class="left">
           <el-button type="text" class="collapse-btn" @click="toggleCollapse">
-            <i class="el-icon-s-fold icon-size" v-if="isCollapse"></i>
-            <i class="el-icon-s-unfold icon-size" v-else></i>
+            <i class="el-icon-s-unfold icon-size" v-if="isCollapse"></i>
+            <i class="el-icon-s-fold icon-size" v-else></i>
           </el-button>
         </div>
         <div class="right">
-          <el-button type="info" @click="logout" >退出登录</el-button>
+          <el-dropdown>
+            <div class="usr">
+              <el-avatar :size="31" :src="userInfo.avatar"></el-avatar>
+              <span style="color: white">{{ userInfo.username }}</span>
+              <i class="el-icon-arrow-down el-icon--right" style="color: white"></i>
+            </div>
+            <template>
+              <el-dropdown-menu>
+                <div style="padding: 0 10px;"> <!-- 添加自定义边距 -->
+                  <el-button type="info" @click="logout" style="width: 100%;">退出登录</el-button>
+                </div>
+              </el-dropdown-menu>
+            </template>
+
+          </el-dropdown>
         </div>
       </el-header>
       <el-main>
@@ -56,6 +80,10 @@ export default {
     return {
       isCollapse: false, // 控制侧边栏展开折叠
       defaultActive: '/user/certificates', // 默认选中的菜单项索引
+      userInfo: {
+        username: '普通用户',
+        avatar: 'https://xzj-pic-1306183757.cos.ap-nanjing.myqcloud.com/picgo/摘月白底.jpg',
+      },
     };
   },
   methods: {
@@ -90,7 +118,16 @@ export default {
 }
 
 .aside {
-  /* Sidebar styles */
+  overflow-y: hidden; /* 隐藏垂直滚动条 */
+  background-color: #001529; /* 调整背景颜色 */
+}
+
+/* 侧边栏头部样式调整 */
+.aside-header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 确保内容水平居中 */
+  padding: 10px; /* 调整内边距 */
 }
 
 .custom-header {
@@ -116,6 +153,15 @@ export default {
 .collapse-btn {
   color: #fff; /* Button text color */
   cursor: pointer;
+}
+
+.aside-title {
+  color: #fff; /* 字体颜色 */
+  font-size: 16px; /* 字体大小 */
+  white-space: nowrap; /* 确保文本不会换行 */
+  overflow: hidden; /* 超出隐藏 */
+  text-overflow: ellipsis; /* 显示省略符号 */
+  margin: 2px; /* 移除外边距 */
 }
 
 .logout-btn {
@@ -145,11 +191,13 @@ export default {
 }
 
 .logoNoCollapse h1 {
-  font-size: 20px;
-  font-weight: 500;
-  color: #fff;
-  text-align: center;
-  margin: 20px 27px 20px 13px;
+  font-size: 18px; /* 调整字体大小为 18px */
+  color: #ffffff; /* 字体颜色设置为白色 */
+  white-space: nowrap; /* 保持文本在一行显示 */
+  overflow: hidden; /* 超出部分隐藏 */
+  text-overflow: ellipsis; /* 超出部分显示省略号 */
+  margin: 0; /* 移除外边距 */
+  padding: 0 10px; /* 添加内边距，确保文本不紧贴边缘 */
 }
 
 .el-main {
@@ -246,6 +294,10 @@ header.el-header .right .usr {
 span.el-avatar.el-avatar--circle {
   margin: 0 6px;
   font-size: 16px;
+}
+/* 调整头像和标题之间的距离，如果有必要 */
+.el-avatar {
+  margin-right: 8px;
 }
 
 header.el-header .right .usr span {
