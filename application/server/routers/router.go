@@ -18,7 +18,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	// 配置CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:9528"}, // 允许的域名列表
+		// AllowOrigins:     []string{"http://localhost:9528"}, // 允许的域名列表
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -50,8 +50,13 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiV1.POST("/showCertList", v1.ShowCertList(db))
 		apiV1.POST("/showProcessedCert", v1.ShowProcessedCert(db))
 		apiV1.POST("/approveCert", v1.ApproveCert(db))
-		apiV1.POST("/testIPFS", v1.QueryCertByUserSys)
+		apiV1.POST("/denialCert", v1.DenialCert(db))
+		apiV1.POST("/queryCertByUserSys", v1.QueryCertByUserSys)
+		apiV1.POST("/queryCertByFullInfoSys", v1.QueryCertByFullInfoSys)
+		apiV1.POST("/queryCertByUserOrg", v1.QueryCertByUserOrg)
+		apiV1.POST("/queryCertOrg", v1.QueryCertOrg)
 	}
+
 	// 静态文件路由
 	r.StaticFS("/web", http.Dir("./dist/"))
 	r.StaticFS("/uploads", http.Dir("./uploads"))
