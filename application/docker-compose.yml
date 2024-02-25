@@ -20,17 +20,13 @@ services:
     volumes:
       - /usr/share/zoneinfo/Asia/Shanghai:/usr/share/zoneinfo/Asia/Shanghai
       - ./../network/crypto-config:/network/crypto-config
+      - ./server/uploads:/root/chiikawa/uploads
     networks:
       - fabric_network
 
   certman-db:
     image: "postgres:latest"
     container_name: certman-db
-    # healthcheck:
-    #   test: ["CMD-SHELL", "pg_isready -U admin -d userdb"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
     ports:
       - "5432:5432"
     environment:

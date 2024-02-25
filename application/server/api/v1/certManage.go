@@ -6,24 +6,24 @@ import (
 
 /**** 管理系统后端代码 ****/
 
-type QueryCertByUserSysRequestBody struct {
-	HoderID string `json:"holder"`
-}
+// type QueryCertByUserSysRequestBody struct {
+// 	HoderID string `json:"holder"`
+// }
 
-type QueryCertByFullInfoSysRequestBody struct {
-	HoderID string `json:"holderID"`
-	CertID  string `json:"certID"`
-}
+// type QueryCertByFullInfoSysRequestBody struct {
+// 	HoderID string `json:"holderID"`
+// 	CertID  string `json:"certID"`
+// }
 
-// 管理系统：查看用户所有证书，通过用户id查询用户在所有机构的所有证书
-func QueryCertByUserSys(c *gin.Context) {
+// // 管理系统：查看用户所有证书，通过用户id查询用户在所有机构的所有证书
+// func QueryCertByUserSys(c *gin.Context) {
 
-}
+// }
 
-// 管理系统：通过证书持有人的id和证书id查询该证书，返回{证书ID，持有人ID，证书颁发机构，有效期，状态，修改情况}
-func QueryCertByFullInfoSys(c *gin.Context) {
+// // 管理系统：通过证书持有人的id和证书id查询该证书，返回{证书ID，持有人ID，证书颁发机构，有效期，状态，修改情况}
+// func QueryCertByFullInfoSys(c *gin.Context) {
 
-}
+// }
 
 /**** 证书机构后端代码 ****/
 

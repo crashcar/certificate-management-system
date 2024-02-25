@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	v1 "application/api/v1"
 	"application/blockchain"
 	"application/pkg/cron"
+	"application/pkg/dbutils"
 	"application/routers"
 )
 
@@ -22,16 +22,20 @@ func main() {
 	blockchain.Init()
 	go cron.Init()
 
-	// 连接pg并创建users/userprofiles表格
+	// 连接pg并创建表格
+	db, err := dbutils.NewDB()
+	if err != nil {
+		log.Fatal("Failed to connect to pg:", err)
+	}
 
-	if err := v1.InitUserdb(); err != nil {
-		log.Fatal("Failed to create tables:", err)
+	if err := dbutils.InitDB(db); err != nil {
+		log.Fatal("Failed to initiate database:", err)
 	}
 
 	endPoint := fmt.Sprintf("0.0.0.0:%d", 8000)
 	server := &http.Server{
 		Addr:    endPoint,
-		Handler: routers.InitRouter(),
+		Handler: routers.InitRouter(db),
 	}
 	log.Printf("[info] start http server listening %s", endPoint)
 	if err := server.ListenAndServe(); err != nil {

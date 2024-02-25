@@ -1,0 +1,6 @@
+go 1.14
+
+use (
+    ./application/server
+    ./chaincode
+)
