@@ -28,23 +28,20 @@
 
 
 <script>
-import { userLogin, userRegister } from '@/api/userInfo'
+import { userLogin } from '@/api/userInfo'
 
 export default {
   name: 'Login',
   data() {
     return {
       loading: false,
-      redirect: undefined,
+
       id: "",
       password:"",
     }
   },
   watch: {
     $route: {
-      handler: function(route) {
-        this.redirect = route.query && route.query.redirect
-      },
       immediate: true
     }
   },

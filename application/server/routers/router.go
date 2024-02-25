@@ -22,7 +22,7 @@ func InitRouter() *gin.Engine {
 		AllowCredentials: true, // 允许带凭证的请求，如Cookies
 		MaxAge:           12 * time.Hour,
 	}))
-	
+
 	apiV1 := r.Group("/api/v1")
 	{
 		apiV1.GET("/hello", v1.Hello)
@@ -42,6 +42,9 @@ func InitRouter() *gin.Engine {
 		apiV1.POST("/login", v1.Login)
 		apiV1.POST("/userLogin", v1.UserLogin)
 		apiV1.POST("/userRegister", v1.UserRegister)
+		apiV1.POST("/queryUserCertificate", v1.QueryUserCertificate)
+		apiV1.POST("/userDownloadCertificate", v1.UserDownloadCertificate)
+		apiV1.POST("/userApplyCertificate", v1.UserApplyCertificate)
 
 	}
 	// 静态文件路由

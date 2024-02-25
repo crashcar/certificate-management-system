@@ -31,7 +31,7 @@ router.beforeEach(async (to, from, next) => {
 
   // 已登录状态的处理逻辑
   if (hasToken!==null && role!==null) {
-    // console.log("已登录: "+hasToken+ " "+ role)
+    console.log("已登录: {user_id: "+hasToken+ " , user_role: "+ role+ " }")
     if (to.path === '/login') {
       // 如果已登录且在访问登录页面，则根据角色重定向
       next({ path: '/' + role })
