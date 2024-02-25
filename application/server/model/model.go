@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // Selling 销售要约
 // 需要确定ObjectOfSale是否属于Seller
 // 买家初始为空
@@ -47,12 +49,37 @@ var DonatingStatusConstant = func() map[string]string {
 
 /*************** CERTIFICATE MANAGEMENT ******************/
 
+// server端用户信息结构体，用于注册登录，数据库表格
 type User struct {
-	ID       string `gorm:"primary_key"` // 身份证号
+	ID       string `gorm:"primary_key"` // 身份证号，主键
 	RealName string `gorm:"not null"`    // 实名
 	Password string `gorm:"not null"`
 	Email    string `gorm:"not null"`
-	Role     int    `gorm:"default:0"` // 0--普通用户 1--管理员（机构中的角色，系统中全是用户）
+}
+
+type ReviewType string
+
+const (
+	CET ReviewType = "CET"
+	CJT ReviewType = "CJT"
+	PHD ReviewType = "PHD"
+)
+
+type Admin struct {
+	ID         uint       `gorm:"primary_key"` // 主键
+	Password   string     `gorm:"not null"`
+	ReviewType ReviewType `gorm:"not null"` // 管理员的类型，用于处理对应类型的证书
+}
+
+// server端暂存用户证书的结构体，数据库表格
+type Cert struct {
+	ID           uint      `gorm:"primary_key"` // 主键
+	Path         string    `gorm:"not null"`    // 证书存储url
+	CertType     string    `gorm:"not null"`    // 证书类型，需要对应类型的管理员进行处理
+	CreatedAt    time.Time // 证书上传时间，按照时间升序排列
+	UploaderID   string    `gorm:"not null"`      // 上传者ID
+	UploaderName string    `gorm:"not null"`      // 上传者姓名
+	IsProcessed  bool      `gorm:"default:false"` //是否处理，true的定时删除
 }
 
 type AuthorityContactInfo struct {
@@ -63,18 +90,19 @@ type AuthorityContactInfo struct {
 
 type Certificate struct {
 	// hash
-	HashFile string `json:"hashFile"`
-	HashPath string `json:"hashPath"`
+	HashFile string `json:"hashFile"` // 原文件hash
+	HashPath string `json:"hashPath"` // ipfs CID hash
 	// metadata
-	CertID               string               `json:"certID"`
-	HoderID              string               `json:"hoderID"`
+	CertID               string               `json:"certID"`  // 认证机构颁发的id：机构名-证书ID(cet.org-0001)
+	HoderID              string               `json:"hoderID"` // 身份证，机构user表的id，主键
 	HoderName            string               `json:"hoderName"`
-	CertType             string               `json:"certType"`
-	IssueDate            string               `json:"issueDate"`
-	ExpiryDate           string               `json:"expiryDate"`
+	CertType             string               `json:"certType"`   // 类型（但也不知道有哪些类型，可以删了也可以留着吧）
+	IssueDate            string               `json:"issueDate"`  // 证书上显示的颁发日期
+	ExpiryDate           string               `json:"expiryDate"` // 证书本身的过期日期
 	IssuingAuthority     string               `json:"issuingAuthority"`
 	AuthorityContactInfo AuthorityContactInfo `json:"authorityContactInfo"`
-	Status               string               `json:"status"`
+	VerifiedTime         string               `json:"verifiedTime"` // 用户上传后管理员核验的时间
+	Status               string               `json:"status"`       // 证书状态（）
 }
 
 var CertStatusConstant = func() map[string]string {
