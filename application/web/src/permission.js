@@ -1,73 +1,52 @@
+// 导入 Vue Router 实例和 Vuex Store 实例，用于路由管理和状态管理。
 import router from './router'
-import store from './store'
+// import store from './store'
+
+// 导入 Element UI 的 Message 组件和 NProgress 进度条库，用于显示提示信息和页面加载进度条。
 import { Message } from 'element-ui'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
+
+// 导入自定义的工具函数，用于从 Cookie 中获取用户 token 和设置页面标题。
 import { getToken } from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
 
+// 配置 NProgress，设置是否显示加载进度条中的旋转图标。
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/login'] // no redirect whitelist
+// 定义一个白名单数组，表示不需要登录即可访问的页面路径。
+const whiteList = ['/login',"/register","/404"] // no redirect whitelist
 
-router.beforeEach(async(to, from, next) => {
-  // start progress bar
+
+// 注册全局前置守卫，在路由导航之前执行相关操作。
+router.beforeEach(async (to, from, next) => {
+  // 开始进度条...
   NProgress.start()
 
-  // set page title
+  // 设置页面标题...
   document.title = getPageTitle(to.meta.title)
 
-  // determine whether the user has logged in
-  const hasToken = getToken()
+  const hasToken = window.localStorage.getItem('user_id')
+  const role = window.localStorage.getItem('user_role')
 
-  if (hasToken) {
+  // 已登录状态的处理逻辑
+  if (hasToken!==null && role!==null) {
+    console.log("已登录: {user_id: "+hasToken+ " , user_role: "+ role+ " }")
     if (to.path === '/login') {
-      // if is logged in, redirect to the home page
-      next({
-        path: '/'
-      })
+      // 如果已登录且在访问登录页面，则根据角色重定向
+      next({ path: '/' + role })
       NProgress.done()
     } else {
-      // determine whether the user has obtained his permission roles through getInfo
-      const hasRoles = store.getters.roles && store.getters.roles.length > 0
-      if (hasRoles) {
-        next()
-      } else {
-        try {
-          // get user info
-          // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
-          var roles = await store.dispatch('account/getInfo')
-
-          // generate accessible routes map based on roles
-          const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-
-          // dynamically add accessible routes
-          router.addRoutes(accessRoutes)
-
-          // hack method to ensure that addRoutes is complete
-          // set the replace: true, so the navigation will not leave a history record
-          next({
-            ...to,
-            replace: true
-          })
-        } catch (error) {
-          // remove token and go to login page to re-login
-          await store.dispatch('account/resetToken')
-          Message.error(error || 'Has Error')
-          next(`/login?redirect=${to.path}`)
-          NProgress.done()
-        }
-      }
+      // 对于其他路径，可以添加更多的角色检查和重定向逻辑
+      next() // 直接放行
     }
   } else {
-    /* has no token*/
-
+    // 未登录状态的处理逻辑
+    console.log("未登录: ")
     if (whiteList.indexOf(to.path) !== -1) {
-      // in the free login whitelist, go directly
-      next()
+      next() // 白名单路径放行
     } else {
-      // other pages that do not have permission to access are redirected to the login page.
-      next(`/login?redirect=${to.path}`)
+      next(`/login`) // 重定向到登录页
       NProgress.done()
     }
   }

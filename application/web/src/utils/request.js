@@ -11,6 +11,10 @@ const service = axios.create({
 
 service.interceptors.response.use(
   response => {
+    // 如果响应的数据类型为 Blob，则直接返回 response
+    if (response.request.responseType === 'blob') {
+      return response
+    }
     const res = response.data
     if (res.code !== 200) {
       MessageBox.alert('服务器开小差了', 'error', {
@@ -19,13 +23,14 @@ service.interceptors.response.use(
       })
       return Promise.reject(new Error(res.msg || 'Error'))
     } else {
-      return res.data
+      return res
     }
+    return  res
   },
   error => {
     if (error.response === undefined) {
       Message({
-        message: '请求失败 ' + error.message,
+        message: '网络请求失败 ' + error.message,
         type: 'error',
         duration: 5 * 1000
       })
