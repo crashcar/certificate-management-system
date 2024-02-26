@@ -18,6 +18,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	// 配置CORS
 	r.Use(cors.New(cors.Config{
+
 		AllowOrigins:     []string{"*"}, // 允许的域名列表
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
@@ -55,6 +56,13 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiV1.POST("/queryCertByFullInfoSys", v1.QueryCertByFullInfoSys)
 		apiV1.POST("/queryCertByUserOrg", v1.QueryCertByUserOrg)
 		apiV1.POST("/queryCertOrg", v1.QueryCertOrg)
+
+		//todo
+		apiV1.POST("/userLogin", v1.UserLogin)
+		apiV1.POST("/userRegister", v1.UserRegister)
+		apiV1.POST("/queryUserCertificate", v1.QueryUserCertificate)
+		apiV1.POST("/userDownloadCertificate", v1.UserDownloadCertificate)
+		apiV1.POST("/userApplyCertificate", v1.UserApplyCertificate)
 	}
 
 	// 静态文件路由
