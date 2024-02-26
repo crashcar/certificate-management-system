@@ -106,6 +106,7 @@ const (
 	SellingBuyKey      = "selling-buy-key"
 	DonatingKey        = "donating-key"
 	DonatingGranteeKey = "donating-grantee-key"
+	CertificateKey     = "certificate-key"
 )
 
 /*************** CERTIFICATE MANAGEMENT ******************/

@@ -1,11 +1,14 @@
 package api
 
 import (
+	"chaincode/model"
+	"chaincode/pkg/utils"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"time"
 )
 
 // 管理系统：单次查询调用接口
@@ -111,7 +114,7 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		IssueDate:            issueDate,
 		ExpiryDate:           expiryDate,
 		IssuingAuthority:     issuingAuthority,
-		AuthorityContactInfo: authorityContactInfo,
+		AuthorityContactInfo: *authorityContactInfo,
 	}
 
 	if expireTime.Before(todayDate) {
