@@ -1,11 +1,14 @@
 version: '2.1'
 
 volumes:
-  orderer.carunion.com:
-  peer0.benz.com:
-  peer1.benz.com:
-  peer0.tesla.com:
-  peer1.tesla.com:
+  orderer.certmanorder.com:
+  peer0.certman.com:
+  peer1.certman.com:
+  peer0.cet.com:
+  peer1.cet.com:
+  peer0.ncre.com:
+  peer1.ncre.com:
+
 
 networks:
   fabric_network:
@@ -13,103 +16,143 @@ networks:
 
 services:
   # 排序服务节点
-  orderer.carunion.com:
-    container_name: orderer.carunion.com
+  orderer.certmanorder.com:
+    container_name: orderer.certmanorder.com
     image: hyperledger/fabric-orderer:2.5.4
     environment:
       - GODEBUG=netdns=go
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/config/genesis.block # 注入创世区块
-      - ORDERER_GENERAL_LOCALMSPID=CARUNIONMSP
+      - ORDERER_GENERAL_LOCALMSPID=CERTMANORDERMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer/msp # 证书相关
     command: orderer
     ports:
       - "7050:7050"
     volumes: # 挂载由cryptogen和configtxgen生成的证书文件以及创世区块
       - ./config/genesis.block:/etc/hyperledger/config/genesis.block
-      - ./crypto-config/ordererOrganizations/carunion.com/orderers/orderer.carunion.com/:/etc/hyperledger/orderer
-      - orderer.carunion.com:/var/hyperledger/production/orderer
+      - ./crypto-config/ordererOrganizations/certmanorder.com/orderers/orderer.certmanorder.com/:/etc/hyperledger/orderer
+      - orderer.certmanorder.com:/var/hyperledger/production/orderer
     networks:
       - fabric_network
 
-  #  BENZ 组织 peer0 节点
-  peer0.benz.com:
+  #  CERTMAN 组织 peer0 节点
+  peer0.certman.com:
     extends:
       file: docker-compose-base.yaml
       service: peer-base
-    container_name: peer0.benz.com
+    container_name: peer0.certman.com
     environment:
-      - CORE_PEER_ID=peer0.benz.com
-      - CORE_PEER_LOCALMSPID=BENZMSP
-      - CORE_PEER_ADDRESS=peer0.benz.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.benz.com:7051
+      - CORE_PEER_ID=peer0.certman.com
+      - CORE_PEER_LOCALMSPID=CERTMANMSP
+      - CORE_PEER_ADDRESS=peer0.certman.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.certman.com:7051
     ports:
       - "7051:7051" # grpc服务端口
       - "7053:7053" # eventhub端口
     volumes:
-      - ./crypto-config/peerOrganizations/benz.com/peers/peer0.benz.com:/etc/hyperledger/peer
-      - peer0.benz.com:/var/hyperledger/production
+      - ./crypto-config/peerOrganizations/certman.com/peers/peer0.certman.com:/etc/hyperledger/peer
+      - peer0.certman.com:/var/hyperledger/production
     depends_on:
-      - orderer.carunion.com
+      - orderer.certmanorder.com
 
-  #  BENZ 组织 peer1 节点
-  peer1.benz.com:
+  #  CERTMAN 组织 peer1 节点
+  peer1.certman.com:
     extends:
       file: docker-compose-base.yaml
       service: peer-base
-    container_name: peer1.benz.com
+    container_name: peer1.certman.com
     environment:
-      - CORE_PEER_ID=peer1.benz.com
-      - CORE_PEER_LOCALMSPID=BENZMSP
-      - CORE_PEER_ADDRESS=peer1.benz.com:7051
+      - CORE_PEER_ID=peer1.certman.com
+      - CORE_PEER_LOCALMSPID=CERTMANMSP
+      - CORE_PEER_ADDRESS=peer1.certman.com:7051
     ports:
       - "17051:7051"
       - "17053:7053"
     volumes:
-      - ./crypto-config/peerOrganizations/benz.com/peers/peer1.benz.com:/etc/hyperledger/peer
-      - peer1.benz.com:/var/hyperledger/production
+      - ./crypto-config/peerOrganizations/certman.com/peers/peer1.certman.com:/etc/hyperledger/peer
+      - peer1.certman.com:/var/hyperledger/production
     depends_on:
-      - orderer.carunion.com
+      - orderer.certmanorder.com
 
-  #  TESLA 组织 peer0 节点
-  peer0.tesla.com:
+
+  #  CET 组织 peer0 节点
+  peer0.cet.com:
     extends:
       file: docker-compose-base.yaml
       service: peer-base
-    container_name: peer0.tesla.com
+    container_name: peer0.cet.com
     environment:
-      - CORE_PEER_ID=peer0.tesla.com
-      - CORE_PEER_LOCALMSPID=TESLAMSP
-      - CORE_PEER_ADDRESS=peer0.tesla.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.tesla.com:7051
+      - CORE_PEER_ID=peer0.cet.com
+      - CORE_PEER_LOCALMSPID=CETMSP
+      - CORE_PEER_ADDRESS=peer0.cet.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.cet.com:7051
     ports:
-      - "27051:7051"
-      - "27053:7053"
+      - "27051:7051" # grpc服务端口
+      - "27053:7053" # eventhub端口
     volumes:
-      - ./crypto-config/peerOrganizations/tesla.com/peers/peer0.tesla.com:/etc/hyperledger/peer
-      - peer0.tesla.com:/var/hyperledger/production
+      - ./crypto-config/peerOrganizations/cet.com/peers/peer0.cet.com:/etc/hyperledger/peer
+      - peer0.cet.com:/var/hyperledger/production
     depends_on:
-      - orderer.carunion.com
+      - orderer.certmanorder.com
 
-  #  TESLA 组织 peer1 节点
-  peer1.tesla.com:
+  #  CET 组织 peer1 节点
+  peer1.cet.com:
     extends:
       file: docker-compose-base.yaml
       service: peer-base
-    container_name: peer1.tesla.com
+    container_name: peer1.cet.com
     environment:
-      - CORE_PEER_ID=peer1.tesla.com
-      - CORE_PEER_LOCALMSPID=TESLAMSP
-      - CORE_PEER_ADDRESS=peer1.tesla.com:7051
+      - CORE_PEER_ID=peer1.cet.com
+      - CORE_PEER_LOCALMSPID=CETMSP
+      - CORE_PEER_ADDRESS=peer1.cet.com:7051
     ports:
       - "37051:7051"
       - "37053:7053"
     volumes:
-      - ./crypto-config/peerOrganizations/tesla.com/peers/peer1.tesla.com:/etc/hyperledger/peer
-      - peer1.tesla.com:/var/hyperledger/production
+      - ./crypto-config/peerOrganizations/cet.com/peers/peer1.cet.com:/etc/hyperledger/peer
+      - peer1.cet.com:/var/hyperledger/production
     depends_on:
-      - orderer.carunion.com
+      - orderer.certmanorder.com
+
+  #  NCRE 组织 peer0 节点
+  peer0.ncre.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer0.ncre.com
+    environment:
+      - CORE_PEER_ID=peer0.ncre.com
+      - CORE_PEER_LOCALMSPID=NCREMSP
+      - CORE_PEER_ADDRESS=peer0.ncre.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.ncre.com:7051
+    ports:
+      - "47051:7051"
+      - "47053:7053"
+    volumes:
+      - ./crypto-config/peerOrganizations/ncre.com/peers/peer0.ncre.com:/etc/hyperledger/peer
+      - peer0.ncre.com:/var/hyperledger/production
+    depends_on:
+      - orderer.certmanorder.com
+
+  #  ncre 组织 peer1 节点
+  peer1.ncre.com:
+    extends:
+      file: docker-compose-base.yaml
+      service: peer-base
+    container_name: peer1.ncre.com
+    environment:
+      - CORE_PEER_ID=peer1.ncre.com
+      - CORE_PEER_LOCALMSPID=NCREMSP
+      - CORE_PEER_ADDRESS=peer1.ncre.com:7051
+    ports:
+      - "57051:7051"
+      - "57053:7053"
+    volumes:
+      - ./crypto-config/peerOrganizations/ncre.com/peers/peer1.ncre.com:/etc/hyperledger/peer
+      - peer1.ncre.com:/var/hyperledger/production
+    depends_on:
+      - orderer.certmanorder.com
 
   # 客户端节点
   cli:
@@ -125,14 +168,18 @@ services:
     command: /bin/bash
     volumes:
       - ./config:/etc/hyperledger/config
-      - ./crypto-config/peerOrganizations/benz.com/:/etc/hyperledger/peer/benz.com
-      - ./crypto-config/peerOrganizations/tesla.com/:/etc/hyperledger/peer/tesla.com
+      - ./crypto-config/peerOrganizations/certman.com/:/etc/hyperledger/peer/certman.com
+      - ./crypto-config/peerOrganizations/cet.com/:/etc/hyperledger/peer/cet.com
+      - ./crypto-config/peerOrganizations/ncre.com/:/etc/hyperledger/peer/ncre.com
       - ./../chaincode:/opt/gopath/src/chaincode # 链码路径注入
     networks:
       - fabric_network
     depends_on:
-      - orderer.carunion.com
-      - peer0.benz.com
-      - peer1.benz.com
-      - peer0.tesla.com
-      - peer1.tesla.com
+      - orderer.certmanorder.com
+      - peer0.certman.com
+      - peer1.certman.com
+      - peer0.cet.com
+      - peer1.cet.com
+      - peer0.ncre.com
+      - peer1.ncre.com
+

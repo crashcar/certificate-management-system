@@ -18,7 +18,8 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	// 配置CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:9528"}, // 允许的域名列表
+
+		AllowOrigins:     []string{"*"}, // 允许的域名列表
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},

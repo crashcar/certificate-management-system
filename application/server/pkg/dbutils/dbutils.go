@@ -33,14 +33,12 @@ const (
 //     is_processed BOOLEAN DEFAULT FALSE
 // );`
 
-const createSeqSQL = "CREATE SEQUENCE IF NOT EXISTS admin_id_seq START WITH 10001"
+const createSeqSQL = "CREATE SEQUENCE IF NOT EXISTS admin_id_seq START WITH 10001;"
 
 const triggerFuncSQL = `CREATE OR REPLACE FUNCTION increment_admin_id()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.id IS NULL THEN
-        NEW.id := nextval('admin_id_seq');
-    END IF;
+    NEW.id := nextval('admin_id_seq');
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;`

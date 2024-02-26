@@ -10,7 +10,7 @@ Organizations:
         Rule: "OR('CERTMANORDERMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('CERTMANORDERMSP.admin')"
+        Rule: "OR('CERTMANORDERMSP.member')"
       Admins:
         Type: Signature
         Rule: "OR('CERTMANORDERMSP.admin')"
@@ -28,7 +28,7 @@ Organizations:
         Rule: "OR('CERTMANMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('CERTMANMSP.admin')"
+        Rule: "OR('CERTMANMSP.member')"
       Admins:
         Type: Signature
         Rule: "OR('CERTMANMSP.admin')"
@@ -46,16 +46,16 @@ Organizations:
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('CERMSP.member')"
+        Rule: "OR('CETMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('CERMSP.admin')"
+        Rule: "OR('CETMSP.member')"
       Admins:
         Type: Signature
-        Rule: "OR('CERMSP.admin')"
+        Rule: "OR('CETMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('CERMSP.member')"
+        Rule: "OR('CETMSP.member')"
     AnchorPeers: # 组织锚节点的配置
       - Host: peer0.cet.com
         Port: 7051
@@ -70,7 +70,7 @@ Organizations:
         Rule: "OR('NCREMSP.member')"
       Writers:
         Type: Signature
-        Rule: "OR('NCREMSP.admin')"
+        Rule: "OR('NCREMSP.member')"
       Admins:
         Type: Signature
         Rule: "OR('NCREMSP.admin')"
