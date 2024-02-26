@@ -51,6 +51,7 @@ FOR EACH ROW
 EXECUTE FUNCTION increment_admin_id();`
 
 func NewDB() (*gorm.DB, error) {
+	//todo: 数据库连接命令
 	dsn := "host=certman-db user=admin password=1234 dbname=userdb port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	var db *gorm.DB
 	var err error
@@ -90,9 +91,17 @@ func InitDB(db *gorm.DB) error {
 	if err = db.Exec(triggerFuncSQL).Error; err != nil {
 		return err
 	}
-	if err = db.Exec(createTriggerSQL).Error; err != nil {
+	// 检查触发器是否存在
+	var triggerCount int64
+	if err := db.Raw("SELECT count(*) FROM pg_trigger WHERE tgname = 'set_admin_id_before_insert'").Count(&triggerCount).Error; err != nil {
 		return err
 	}
 
+	// 如果触发器不存在，则创建
+	if triggerCount == 0 {
+		if err = db.Exec(createTriggerSQL).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
