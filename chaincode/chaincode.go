@@ -81,6 +81,10 @@ func (t *BlockChainRealEstate) Invoke(stub shim.ChaincodeStubInterface) pb.Respo
 		return api.QueryCertByInfos(stub, args)
 	case "queryCertByInfosLists":
 		return api.QueryCertByInfosLists(stub, args)
+	case "queryCertByAuthority":
+		return api.QueryCertByAuthority(stub, args)
+	case "queryCertByAuthorityLists":
+		return api.QueryCertByAuthorityLists(stub, args)
 	case "uploadCertOrg":
 		return api.UploadCertOrg(stub, args)
 	case "deleteCertOrg":

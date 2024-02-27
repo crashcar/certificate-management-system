@@ -2,18 +2,184 @@ package main
 
 import (
 	"bytes"
+	"chaincode/api"
 	"chaincode/model"
+	"chaincode/pkg/utils"
 	"encoding/json"
 	"fmt"
-	"testing"
-
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
+	"testing"
+	"time"
 )
 
+type AuthorityContactInfo struct {
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+	Address string `json:"address"`
+}
+
+type BlockChainCertificate struct {
+	HashFile string `json:"hashFile"`
+	HashPath string `json:"hashPath"`
+	// metadata
+	CertID               string               `json:"certID"`
+	HoderID              string               `json:"hoderID"`
+	HoderName            string               `json:"hoderName"`
+	CertType             string               `json:"certType"`
+	IssueDate            string               `json:"issueDate"`
+	ExpiryDate           string               `json:"expiryDate"`
+	IssuingAuthority     string               `json:"issuingAuthority"`
+	AuthorityContactInfo AuthorityContactInfo `json:"authorityContactInfo"`
+	Status               string               `json:"status"`
+}
+
+type BlockChainRealEstate struct {
+	RealEstateID string `json:"realEstateId"` //车辆ID
+	Proprietor   string `json:"proprietor"`   //所有者(客户)(客户AccountId)
+	Encumbrance  bool   `json:"encumbrance"`  //是否作为担保
+	Carmodel     string `json:"carmodel"`
+	Car_scz      string `json:"car_scz"`
+	Car_scd      string `json:"car_scd"`
+	Car_scsj     string `json:"car_scsj"`
+	Car_lbjph    string `json:"car_lbjph"`
+	Car_lbjscz   string `json:"car_lbjscz"`
+	Car_lbjscd   string `json:"car_lbjscd"`
+	Car_lbjscsj  string `json:"car_lbjscsj"`
+}
+
+// Init 链码初始化
+func (t *BlockChainRealEstate) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("链码初始化")
+	//初始化默认数据
+	var accountIds = [6]string{
+		"5feceb66ffc8",
+		"6b86b273ff34",
+		"d4735e3a265e",
+		"4e07408562be",
+		"4b227777d4dd",
+		"ef2d127de37b",
+	}
+	var userNames = [6]string{"管理员", "①号客户", "②号客户", "③号客户", "④号客户", "⑤号客户"}
+	var balances = [6]float64{0, 5000000, 5000000, 5000000, 5000000, 5000000}
+	//初始化账号数据
+	for i, val := range accountIds {
+		account := &model.Account{
+			AccountId: val,
+			UserName:  userNames[i],
+			Balance:   balances[i],
+		}
+		// 写入账本
+		if err := utils.WriteLedger(account, stub, model.AccountKey, []string{val}); err != nil {
+			return shim.Error(fmt.Sprintf("%s", err))
+		}
+	}
+	return shim.Success([]byte("Init Success"))
+}
+
+func (t *BlockChainCertificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("链码初始化")
+	var hashfile = string("hashfile")
+	var hashpath = string("hashpath")
+	var certId = string("certId")
+	var hoderId = string("hoderId")
+	var hoderName = string("hoderName")
+	var certType = string("certType")
+	var issueDate = string("2020-01-02")
+	var expiryDate = string("2020-01-02")
+	var issuingAuthority = string("issuingAuthority")
+	var phone = string("phone")
+	var email = string("email")
+	var address = string("address")
+
+	authorityInfo := &model.AuthorityContactInfo{
+		Phone:   phone,
+		Email:   email,
+		Address: address,
+	}
+
+	certificate := &model.Certificate{
+		HashFile:             hashfile,
+		HashPath:             hashpath,
+		CertID:               certId,
+		HoderID:              hoderId,
+		HoderName:            hoderName,
+		CertType:             certType,
+		IssueDate:            issueDate,
+		ExpiryDate:           expiryDate,
+		IssuingAuthority:     issuingAuthority,
+		AuthorityContactInfo: *authorityInfo,
+	}
+	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	return shim.Success([]byte("Init Success"))
+}
+
+// Invoke 实现Invoke接口调用智能合约
+func (t *BlockChainCertificate) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	funcName, args := stub.GetFunctionAndParameters()
+	switch funcName {
+	case "Init":
+		return api.MyInit(stub, args)
+	case "hello":
+		return api.Hello(stub, args)
+		// return api.CreateRealEstate(stub, args)
+	case "queryAccountList":
+		return api.QueryAccountList(stub, args)
+	case "createRealEstate":
+		return api.CreateRealEstate(stub, args)
+	case "queryRealEstateList":
+		return api.QueryRealEstateList(stub, args)
+	case "createSelling":
+		return api.CreateSelling(stub, args)
+	case "createSellingByBuy":
+		return api.CreateSellingByBuy(stub, args)
+	case "querySellingList":
+		return api.QuerySellingList(stub, args)
+	case "querySellingListByBuyer":
+		return api.QuerySellingListByBuyer(stub, args)
+	case "updateSelling":
+		return api.UpdateSelling(stub, args)
+	case "createDonating":
+		return api.CreateDonating(stub, args)
+	case "queryDonatingList":
+		return api.QueryDonatingList(stub, args)
+	case "queryDonatingListByGrantee":
+		return api.QueryDonatingListByGrantee(stub, args)
+	case "updateDonating":
+		return api.UpdateDonating(stub, args)
+
+	case "queryCertByInfos":
+		return api.QueryCertByInfos(stub, args)
+	case "queryCertByInfosLists":
+		return api.QueryCertByInfosLists(stub, args)
+	case "queryCertByAuthority":
+		return api.QueryCertByAuthority(stub, args)
+	case "queryCertByAuthorityLists":
+		return api.QueryCertByAuthorityLists(stub, args)
+	case "uploadCertOrg":
+		return api.UploadCertOrg(stub, args)
+	case "deleteCertOrg":
+		return api.DeleteCertOrg(stub, args)
+	default:
+		return shim.Error(fmt.Sprintf("没有该功能: %s", funcName))
+	}
+}
+
+//func initTest(t *testing.T) *shim.MockStub {
+//	scc := new(BlockChainRealEstate)
+//	stub := shim.NewMockStub("new", scc)
+//	checkInit(t, stub, [][]byte{[]byte("init")})
+//	return stub
+//}
+
 func initTest(t *testing.T) *shim.MockStub {
-	scc := new(BlockChainRealEstate)
-	stub := shim.NewMockStub("ex01", scc)
+	scc := new(BlockChainCertificate)
+	stub := shim.NewMockStub("new", scc)
 	checkInit(t, stub, [][]byte{[]byte("init")})
 	return stub
 }
@@ -43,81 +209,105 @@ func TestBlockChainRealEstate_Init(t *testing.T) {
 // 测试获取账户信息
 func Test_QueryAccountList(t *testing.T) {
 	stub := initTest(t)
+	expiryDate := "2024-01-02"
+	expireTime, err := time.Parse("2006-01-02", expiryDate)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("日期处理错误\n"))
+	}
+	fmt.Println(fmt.Sprintf("%s\n", expireTime))
 	fmt.Println(fmt.Sprintf("1、测试获取所有数据\n%s",
 		string(checkInvoke(t, stub, [][]byte{
-			[]byte("queryAccountList"),
+			[]byte("queryCertByInfosLists"),
 		}).Payload)))
 	fmt.Println(fmt.Sprintf("2、测试获取多个数据\n%s",
 		string(checkInvoke(t, stub, [][]byte{
-			[]byte("queryAccountList"),
-			[]byte("5feceb66ffc8"),
-			[]byte("6b86b273ff34"),
+			[]byte("queryCertByInfos"),
+			[]byte("certId"),
+			[]byte("hoderId"),
+			[]byte("hoderName"),
+			[]byte("issuingAuthority"),
 		}).Payload)))
 	fmt.Println(fmt.Sprintf("3、测试获取单个数据\n%s",
 		string(checkInvoke(t, stub, [][]byte{
-			[]byte("queryAccountList"),
-			[]byte("4e07408562be"),
+			[]byte("queryCertByAuthority"),
+			[]byte("issuingAuthority"),
+			[]byte("hoderId"),
 		}).Payload)))
 	fmt.Println(fmt.Sprintf("4、测试获取无效数据\n%s",
 		string(checkInvoke(t, stub, [][]byte{
-			[]byte("queryAccountList"),
-			[]byte("0"),
+			[]byte("queryCertByAuthorityLists"),
 		}).Payload)))
 }
 
 // 测试创建车辆
-func Test_CreateRealEstate(t *testing.T) {
+func Test_UploadCertOrg(t *testing.T) {
 	stub := initTest(t)
 	//成功
 	checkInvoke(t, stub, [][]byte{
-		[]byte("createRealEstate"),
-		[]byte("5feceb66ffc8"), //操作人
-		[]byte("6b86b273ff34"), //所有者
-		[]byte("50"),           //总面积
-		[]byte("30"),           //生活空间
+		[]byte("uploadCertOrg"),
+		[]byte("hashfile"),
+		[]byte("hashpath"),
+		[]byte("certId"),
+		[]byte("hoderId"),
+		[]byte("hoderName"),
+		[]byte("certType"),
+		[]byte("2020-01-02"),
+		[]byte("2020-01-02"),
+		[]byte("issuingAuthority"),
+		[]byte("phone"),
+		[]byte("email"),
+		[]byte("address"),
 	})
 	//操作人权限不足
 	checkInvoke(t, stub, [][]byte{
-		[]byte("createRealEstate"),
-		[]byte("6b86b273ff34"), //操作人
-		[]byte("4e07408562be"), //所有者
-		[]byte("50"),           //总面积
-		[]byte("30"),           //生活空间
+		[]byte("uploadCertOrg"),
+		[]byte("hashfile"),
+		[]byte("hashpath"),
+		[]byte("certId"),
+		[]byte("hoderId"),
+		[]byte("hoderName"),
+		[]byte("certType"),
+		[]byte("2020-01-03"),
+		[]byte("2020-01-02"),
+		[]byte("issuingAuthority"),
+		[]byte("phone"),
+		[]byte("email"),
+		[]byte("address"),
 	})
-	//操作人应为管理员且与所有人不能相同
-	checkInvoke(t, stub, [][]byte{
-		[]byte("createRealEstate"),
-		[]byte("5feceb66ffc8"), //操作人
-		[]byte("5feceb66ffc8"), //所有者
-		[]byte("50"),           //总面积
-		[]byte("30"),           //生活空间
-	})
-	//客户proprietor信息验证失败
-	checkInvoke(t, stub, [][]byte{
-		[]byte("createRealEstate"),
-		[]byte("5feceb66ffc8"),    //操作人
-		[]byte("6b86b273ff34555"), //所有者
-		[]byte("50"),              //总面积
-		[]byte("30"),              //生活空间
-	})
-	//参数个数不满足
-	checkInvoke(t, stub, [][]byte{
-		[]byte("createRealEstate"),
-		[]byte("5feceb66ffc8"), //操作人
-		[]byte("6b86b273ff34"), //所有者
-		[]byte("50"),           //总面积
-	})
-	//参数格式转换出错
-	checkInvoke(t, stub, [][]byte{
-		[]byte("createRealEstate"),
-		[]byte("5feceb66ffc8"), //操作人
-		[]byte("6b86b273ff34"), //所有者
-		[]byte("50f"),          //总面积
-		[]byte("30"),           //生活空间
-	})
+	////操作人应为管理员且与所有人不能相同
+	//checkInvoke(t, stub, [][]byte{
+	//	[]byte("createRealEstate"),
+	//	[]byte("5feceb66ffc8"), //操作人
+	//	[]byte("5feceb66ffc8"), //所有者
+	//	[]byte("50"),           //总面积
+	//	[]byte("30"),           //生活空间
+	//})
+	////客户proprietor信息验证失败
+	//checkInvoke(t, stub, [][]byte{
+	//	[]byte("createRealEstate"),
+	//	[]byte("5feceb66ffc8"),    //操作人
+	//	[]byte("6b86b273ff34555"), //所有者
+	//	[]byte("50"),              //总面积
+	//	[]byte("30"),              //生活空间
+	//})
+	////参数个数不满足
+	//checkInvoke(t, stub, [][]byte{
+	//	[]byte("createRealEstate"),
+	//	[]byte("5feceb66ffc8"), //操作人
+	//	[]byte("6b86b273ff34"), //所有者
+	//	[]byte("50"),           //总面积
+	//})
+	////参数格式转换出错
+	//checkInvoke(t, stub, [][]byte{
+	//	[]byte("createRealEstate"),
+	//	[]byte("5feceb66ffc8"), //操作人
+	//	[]byte("6b86b273ff34"), //所有者
+	//	[]byte("50f"),          //总面积
+	//	[]byte("30"),           //生活空间
+	//})
 }
 
-// 手动创建一些车辆
+//手动创建一些车辆
 func checkCreateRealEstate(stub *shim.MockStub, t *testing.T) []model.RealEstate {
 	var realEstateList []model.RealEstate
 	var realEstate model.RealEstate
@@ -159,6 +349,21 @@ func checkCreateRealEstate(stub *shim.MockStub, t *testing.T) []model.RealEstate
 	json.Unmarshal(bytes.NewBuffer(resp4.Payload).Bytes(), &realEstate)
 	realEstateList = append(realEstateList, realEstate)
 	return realEstateList
+}
+
+func Test_DeleteCertificate(t *testing.T) {
+	stub := initTest(t)
+	fmt.Println(fmt.Sprintf("测试删除证书\n%s",
+		string(checkInvoke(t, stub, [][]byte{
+			[]byte("deleteCertOrg"),
+			[]byte("certId"),
+		}).Payload)))
+
+	fmt.Println(fmt.Sprintf("3、测试获取单个数据\n%s",
+		string(checkInvoke(t, stub, [][]byte{
+			[]byte("queryCertByInfos"),
+			[]byte("certId"),
+		}).Payload)))
 }
 
 // 测试获取商品信息

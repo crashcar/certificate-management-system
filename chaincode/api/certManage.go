@@ -5,13 +5,12 @@ import (
 	"chaincode/pkg/utils"
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
+	"time"
 )
 
-// 管理系统：单次查询调用接口
+// 管理系统：单次查询调用接口，证书作为查询主键
 func QueryCertByInfos(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var certificateList []model.Certificate
 	results, err := utils.GetStateByPartialCompositeKeys2(stub, model.CertificateKey, args)
@@ -35,7 +34,7 @@ func QueryCertByInfos(stub shim.ChaincodeStubInterface, args []string) pb.Respon
 	return shim.Success(certificateListByte)
 }
 
-// 管理系统：多次查询调用接口
+// 管理系统：多次查询调用接口，证书作为查询主键
 func QueryCertByInfosLists(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var certificateList []model.Certificate
 	results, err := utils.GetStateByPartialCompositeKeys(stub, model.CertificateKey, args)
@@ -59,10 +58,58 @@ func QueryCertByInfosLists(stub shim.ChaincodeStubInterface, args []string) pb.R
 	return shim.Success(certificateListByte)
 }
 
+// 管理系统：单次查询调用接口, 机构作为查询主键
+func QueryCertByAuthority(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var certificateList []model.Certificate
+	results, err := utils.GetStateByPartialCompositeKeys2(stub, model.AuthorityKey, args)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	for _, v := range results {
+		if v != nil {
+			var certificate model.Certificate
+			err := json.Unmarshal(v, &certificate)
+			if err != nil {
+				return shim.Error(fmt.Sprintf("QueryCertByInfos-反序列化出错: %s", err))
+			}
+			certificateList = append(certificateList, certificate)
+		}
+	}
+	certificateListByte, err := json.Marshal(certificateList)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("QueryCertByInfos-序列化出错: %s", err))
+	}
+	return shim.Success(certificateListByte)
+}
+
+// 管理系统：多次查询调用接口, 机构作为查询主键
+func QueryCertByAuthorityLists(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var certificateList []model.Certificate
+	results, err := utils.GetStateByPartialCompositeKeys(stub, model.AuthorityKey, args)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	for _, v := range results {
+		if v != nil {
+			var certificate model.Certificate
+			err := json.Unmarshal(v, &certificate)
+			if err != nil {
+				return shim.Error(fmt.Sprintf("QueryCertByUserSys-反序列化出错: %s", err))
+			}
+			certificateList = append(certificateList, certificate)
+		}
+	}
+	certificateListByte, err := json.Marshal(certificateList)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("QueryCertByUserSys-序列化出错: %s", err))
+	}
+	return shim.Success(certificateListByte)
+}
+
 // org：-管理员- 上传证书
 func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if len(args) != 12 {
-		return shim.Error("参数个数不满足")
+		return shim.Error(fmt.Sprintf("参数个数不满足, 输入%d, 应为12\n", len(args)))
 	}
 
 	//检测参数是否为空
@@ -93,13 +140,13 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	}
 
 	//判断一下是否过期
-	expireTime, err := time.Parse("2024-01-02", expiryDate)
+	expireTime, err := time.Parse("2006-01-02", expiryDate)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("过期日期格式解析出错:%s", err))
 	}
 
 	now := time.Now()
-	todayDate, err := time.Parse("2024-01-02", now.Format("2024-01-02"))
+	todayDate, err := time.Parse("2006-01-02", now.Format("2006-01-02"))
 	if err != nil {
 		return shim.Error(fmt.Sprintf("当天日期格式解析出错:%s", err))
 	}
@@ -127,6 +174,9 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
 	//将成功创建的信息返回
 	certificateByte, err := json.Marshal(certificate)
 	if err != nil {
@@ -141,9 +191,10 @@ func DeleteCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if len(args) != 1 {
 		return shim.Error("参数个数不满足")
 	}
-	certID := args[0]
+	//certID := args[0]
 
 	//查询证书是否存在
+	var certificateList []model.Certificate
 	results, err := utils.GetStateByPartialCompositeKeys2(stub, model.CertificateKey, args)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
@@ -152,11 +203,19 @@ func DeleteCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		if v == nil {
 			return shim.Error(fmt.Sprintf("待删除的证书不存在"))
 		}
+		var certificate model.Certificate
+		err := json.Unmarshal(v, &certificate)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("QueryCertByUserSys-反序列化出错: %s", err))
+		}
+		certificateList = append(certificateList, certificate)
+		//删除证书
+		if err := utils.DelLedger(stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+			return shim.Error(fmt.Sprintf("%s", err))
+		}
 	}
 
-	//删除证书
-	if err := utils.DelLedger(stub, model.CertificateKey, []string{certID}); err != nil {
-		return shim.Error(fmt.Sprintf("%s", err))
-	}
-	return shim.Success(nil)
+	certificateByte, err := json.Marshal(certificateList)
+	//fmt.Sprintf("删除完毕")
+	return shim.Success(certificateByte)
 }
