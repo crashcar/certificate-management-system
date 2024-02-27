@@ -24,7 +24,9 @@ type LoginRequestBody struct {
 	Password string `json:"password"`
 }
 
-func Register(db *gorm.DB) gin.HandlerFunc {
+// UserRegister  注册
+// 输入参数： id, realname, password, email
+func UserRegister(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := app.Gin{C: c}
 		body := new(RegisterRequestBody)
@@ -34,7 +36,14 @@ func Register(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		if body.ID == "" || body.RealName == "" || body.Password == "" || body.Email == "" {
-			appG.Response(http.StatusBadRequest, "参数解析失败", "请填写用户名、密码、Email")
+			appG.Response(http.StatusBadRequest, "Register_info_not_completed", "请填写完整信息(用户名、姓名、密码、Email)")
+			return
+		}
+
+		// 检查用户是否已注册
+		var existingUser model.User
+		if err := db.Where("id = ?", body.ID).First(&existingUser).Error; err == nil {
+			appG.Response(http.StatusOK, "Register_already", "用户已注册，请直接登录")
 			return
 		}
 
@@ -44,6 +53,7 @@ func Register(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		// 创建新用户
 		user := model.User{
 			ID:       body.ID,
 			RealName: body.RealName,
@@ -55,12 +65,12 @@ func Register(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("创建账户%s", err.Error()))
 			return
 		}
-
-		appG.Response(http.StatusOK, "成功", "用户注册成功")
+		appG.Response(http.StatusOK, "Register_Success", "用户注册成功")
 	}
 }
 
-func Login(db *gorm.DB) gin.HandlerFunc {
+// UserLogin  登录
+func UserLogin(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := app.Gin{C: c}
 		body := new(LoginRequestBody)
@@ -76,16 +86,16 @@ func Login(db *gorm.DB) gin.HandlerFunc {
 
 		var user model.User
 		if err := db.Where("id = ?", body.ID).First(&user).Error; err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("用户不存在%s", err.Error()))
+			appG.Response(http.StatusOK, "Login_Failed", "当前用户不存在, 请重新注册")
 			return
 		}
 
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password)); err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("密码错误%s", err.Error()))
+			appG.Response(http.StatusOK, "Login_Failed", "用户密码输入错误")
 			return
 		}
 
-		appG.Response(http.StatusOK, "成功", "用户登录成功")
+		appG.Response(http.StatusOK, "Login_Success", "用户登录成功")
 	}
 }
 
@@ -100,6 +110,8 @@ type adminRegisterRequestBody struct {
 	ReviewType string `json:"reviewType"`
 }
 
+// AdminRegister  管理员注册
+// TODO: 管理员注册逻辑存在问题
 func AdminRegister(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := app.Gin{C: c}
@@ -130,7 +142,7 @@ func AdminRegister(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		appG.Response(http.StatusOK, "管理员注册成功", admin.ID)
+		appG.Response(http.StatusOK, "Admin_Register_Success", admin.ID)
 	}
 }
 
@@ -139,6 +151,7 @@ type adminLoginRequestBody struct {
 	Password string `json:"password"`
 }
 
+// AdminLogin  管理员登录
 func AdminLogin(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := app.Gin{C: c}
@@ -155,15 +168,15 @@ func AdminLogin(db *gorm.DB) gin.HandlerFunc {
 
 		var admin model.Admin
 		if err := db.Where("id = ?", body.ID).First(&admin).Error; err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("用户不存在%s", err.Error()))
+			appG.Response(http.StatusInternalServerError, "Login_Failed", "管理员账户不存在")
 			return
 		}
 
 		if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(body.Password)); err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("密码错误%s", err.Error()))
+			appG.Response(http.StatusInternalServerError, "Login_Failed", "管理员密码输入错误")
 			return
 		}
 
-		appG.Response(http.StatusOK, "成功", "管理员登录成功")
+		appG.Response(http.StatusOK, "Login_Success", "管理员登录成功")
 	}
 }

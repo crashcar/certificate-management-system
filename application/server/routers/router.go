@@ -42,11 +42,16 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiV1.POST("/queryDonatingList", v1.QueryDonatingList)
 		apiV1.POST("/queryDonatingListByGrantee", v1.QueryDonatingListByGrantee)
 		apiV1.POST("/updateDonating", v1.UpdateDonating)
-		apiV1.POST("/register", v1.Register(db))
-		apiV1.POST("/login", v1.Login(db))
-		apiV1.GET("/reviewTypes", v1.GetReviewTypes)
+
+		//用户登录注册
+		apiV1.POST("/register", v1.UserRegister(db))
+		apiV1.POST("/login", v1.UserLogin(db))
+		//管理员登录注册
 		apiV1.POST("/adminRegister", v1.AdminRegister(db))
 		apiV1.POST("/adminLogin", v1.AdminLogin(db))
+
+		apiV1.GET("/reviewTypes", v1.GetReviewTypes)
+
 		apiV1.POST("/upload", v1.SaveFile(db))
 		apiV1.POST("/showCertList", v1.ShowCertList(db))
 		apiV1.POST("/showProcessedCert", v1.ShowProcessedCert(db))
@@ -58,8 +63,6 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiV1.POST("/queryCertOrg", v1.QueryCertOrg)
 
 		//todo
-		apiV1.POST("/userLogin", v1.UserLogin)
-		apiV1.POST("/userRegister", v1.UserRegister)
 		apiV1.POST("/queryUserCertificate", v1.QueryUserCertificate)
 		apiV1.POST("/userDownloadCertificate", v1.UserDownloadCertificate)
 		apiV1.POST("/userApplyCertificate", v1.UserApplyCertificate)
