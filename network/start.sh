@@ -2,7 +2,7 @@
 
 if [[ `uname` == 'Darwin' ]]; then
     echo "Mac OS"
-    export PATH=${PWD}/hyperledger-fabric-darwin-amd64-1.4.12/bin:$PATH
+    export PATH=${PWD}/hyperledger-fabric-darwin-arm64-2.5.4/bin:$PATH
 fi
 if [[ `uname` == 'Linux' ]]; then
     echo "Linux"
