@@ -185,9 +185,9 @@ type reviewApprovedRequestBody struct {
 
 // for test
 // type reviewApprovedRespondBody struct {
-// 	CertID     string `json:"certID"`
-// 	HashString string `json:"hashString"`
-// 	CID        string `json:"cid"`
+//  CertID     string `json:"certID"`
+//  HashString string `json:"hashString"`
+//  CID        string `json:"cid"`
 // }
 
 type authorityContactInfo struct {
@@ -263,7 +263,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		CertID := "cet.com-" + newID.String()
-
+		issuingAuthority := "cet"
 		// 制作上链数据
 		issuingAuthority := "cet"
 		var bodyBytes [][]byte
@@ -298,9 +298,9 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 
 		// 测试certID、hashstring生成，ipfs的cid返回
 		// reviewApprovedRespondBody := reviewApprovedRespondBody{
-		// 	CertID:     CertID,
-		// 	HashString: hashString,
-		// 	CID:        cid,
+		//  CertID:     CertID,
+		//  HashString: hashString,
+		//  CID:        cid,
 		// }
 		// appG.Response(http.StatusOK, "上传IPFS成功", reviewApprovedRespondBody)
 	}

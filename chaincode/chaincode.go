@@ -11,7 +11,14 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
-type BlockChainCertificate struct {
+type AuthorityContactInfo struct {
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+	Address string `json:"address"`
+}
+
+type Certificate struct {
+	// hash
 	HashFile string `json:"hashFile"`
 	HashPath string `json:"hashPath"`
 	// metadata
@@ -27,7 +34,7 @@ type BlockChainCertificate struct {
 }
 
 // Init 链码初始化
-func (t *BlockChainCertificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *Certificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("链码初始化")
 	var hashfile = string("hashfile")
 	var hashpath = string("hashpath")
@@ -70,7 +77,7 @@ func (t *BlockChainCertificate) Init(stub shim.ChaincodeStubInterface) pb.Respon
 }
 
 // Invoke 实现Invoke接口调用智能合约
-func (t *BlockChainRealEstate) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *Certificate) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	funcName, args := stub.GetFunctionAndParameters()
 	switch funcName {
 	case "Init":
@@ -126,7 +133,7 @@ func main() {
 		panic(err)
 	}
 	time.Local = timeLocal
-	err = shim.Start(new(BlockChainRealEstate))
+	err = shim.Start(new(Certificate))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
