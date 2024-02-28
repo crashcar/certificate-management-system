@@ -265,7 +265,6 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		CertID := "cet.com-" + newID.String()
 		issuingAuthority := "cet"
 		// 制作上链数据
-		issuingAuthority := "cet"
 		var bodyBytes [][]byte
 		bodyBytes = append(bodyBytes, []byte(hashString))
 		bodyBytes = append(bodyBytes, []byte(cid))

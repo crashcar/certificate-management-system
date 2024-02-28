@@ -45,3 +45,23 @@ func QueryAccountList(c *gin.Context) {
 	}
 	appG.Response(http.StatusOK, "成功", data)
 }
+
+func Init(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	var bodyBytes [][]byte
+	// bodyBytes = append(bodyBytes, []byte(val.AccountId))
+	//调用智能合约
+	resp, err := bc.ChannelExecute("Init", bodyBytes)
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, "失败", err.Error())
+		return
+	}
+	// 反序列化json
+	var data []map[string]interface{}
+	if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
+		appG.Response(http.StatusInternalServerError, "失败", err.Error())
+		return
+	}
+	appG.Response(http.StatusOK, "成功", data)
+}
