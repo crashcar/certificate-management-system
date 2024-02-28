@@ -14,49 +14,47 @@ import (
 
 /**** 管理系统查询部分 ****/
 
+//根据证书ID查询证书
 type queryCertByUserSysRequestBody struct {
-	HolderID string `json:"holderID"`
+	CertID string `json:"certID"`
 }
 
 type queryCertByFullInfoSysRequestBody struct {
-	HoderID string `json:"holderID"`
 	CertID  string `json:"certID"`
+	HoderID string `json:"holderID"`
 }
 
 // 管理系统：查看用户所有证书，通过用户id查询用户在所有机构的所有证书
 func QueryCertByUserSys(c *gin.Context) {
 	appG := app.Gin{C: c}
-
 	body := new(queryCertByUserSysRequestBody)
 	err := c.ShouldBind(body)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, "参数解析失败", err)
 		return
 	}
-	if body.HolderID == "" {
-		appG.Response(http.StatusBadRequest, "参数有误", "参数有误")
-		return
+	function := ""
+	if body.CertID == "" {
+		function = "queryCertByInfosLists"
+	} else {
+		function = "queryCertByInfos"
 	}
-
 	var bodyBytes [][]byte
-	if body.HolderID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.HolderID))
+	if body.CertID != "" {
+		bodyBytes = append(bodyBytes, []byte(body.CertID))
 	}
-
 	//调用智能合约
-	resp, err := bc.ChannelQuery("queryCertByUserSys", bodyBytes)
+	resp, err := bc.ChannelQuery(function, bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
-
 	// 反序列化json
 	var data []map[string]interface{}
 	if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
-
 	appG.Response(http.StatusOK, "成功", data)
 
 	// ipfsnode := "certman-ipfs:5001"
@@ -88,21 +86,27 @@ func QueryCertByFullInfoSys(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, "参数解析失败", err)
 		return
 	}
-	if body.HoderID == "" || body.CertID == "" {
-		appG.Response(http.StatusBadRequest, "参数有误", "参数有误")
+	function := ""
+	if body.CertID == "" && body.HoderID == "" {
+		function = "queryCertByInfosLists"
+	} else if body.CertID == "" && body.HoderID != "" {
+		appG.Response(http.StatusBadRequest, "CertId为空，HoderId不为空", "参数有误")
 		return
+	} else {
+		function = "queryCertByInfos"
 	}
 
 	var bodyBytes [][]byte
-	if body.HoderID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.HoderID))
-	}
 	if body.CertID != "" {
 		bodyBytes = append(bodyBytes, []byte(body.CertID))
 	}
 
+	if body.HoderID != "" {
+		bodyBytes = append(bodyBytes, []byte(body.HoderID))
+	}
+
 	//调用智能合约
-	resp, err := bc.ChannelQuery("queryCertByFullInfoSys", bodyBytes)
+	resp, err := bc.ChannelQuery(function, bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
@@ -120,8 +124,8 @@ func QueryCertByFullInfoSys(c *gin.Context) {
 /**** 证书机构查询部分 ****/
 
 type queryCertByUserOrgRequestBody struct {
-	HoderID          string `json:"holder"`
 	IssuingAuthority string `json:"issuingAuthority"`
+	HoderID          string `json:"holder"`
 }
 
 // org：-用户- 通过证书持有人的id查询该人在本机构的所有证书
@@ -133,14 +137,15 @@ func QueryCertByUserOrg(c *gin.Context) {
 		return
 	}
 	var bodyBytes [][]byte
-	if body.HoderID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.HoderID))
-	}
+
 	if body.IssuingAuthority != "" {
 		bodyBytes = append(bodyBytes, []byte(body.IssuingAuthority))
 	}
+	if body.HoderID != "" {
+		bodyBytes = append(bodyBytes, []byte(body.HoderID))
+	}
 	//调用智能合约
-	resp, err := bc.ChannelQuery("queryCertByInfos", bodyBytes)
+	resp, err := bc.ChannelQuery("queryCertByAuthority", bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
@@ -171,7 +176,7 @@ func QueryCertOrg(c *gin.Context) {
 		bodyBytes = append(bodyBytes, []byte(body.IssuingAuthority))
 	}
 	//调用智能合约
-	resp, err := bc.ChannelQuery("queryCertByInfos", bodyBytes)
+	resp, err := bc.ChannelQuery("queryCertByAuthority", bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return

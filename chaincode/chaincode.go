@@ -11,34 +11,60 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
-type BlockChainRealEstate struct {
+type BlockChainCertificate struct {
+	HashFile string `json:"hashFile"`
+	HashPath string `json:"hashPath"`
+	// metadata
+	CertID               string               `json:"certID"`
+	HoderID              string               `json:"hoderID"`
+	HoderName            string               `json:"hoderName"`
+	CertType             string               `json:"certType"`
+	IssueDate            string               `json:"issueDate"`
+	ExpiryDate           string               `json:"expiryDate"`
+	IssuingAuthority     string               `json:"issuingAuthority"`
+	AuthorityContactInfo AuthorityContactInfo `json:"authorityContactInfo"`
+	Status               string               `json:"status"`
 }
 
 // Init 链码初始化
-func (t *BlockChainRealEstate) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *BlockChainCertificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("链码初始化")
-	//初始化默认数据
-	var accountIds = [6]string{
-		"5feceb66ffc8",
-		"6b86b273ff34",
-		"d4735e3a265e",
-		"4e07408562be",
-		"4b227777d4dd",
-		"ef2d127de37b",
+	var hashfile = string("hashfile")
+	var hashpath = string("hashpath")
+	var certId = string("certId")
+	var hoderId = string("hoderId")
+	var hoderName = string("hoderName")
+	var certType = string("certType")
+	var issueDate = string("2020-01-02")
+	var expiryDate = string("2020-01-02")
+	var issuingAuthority = string("issuingAuthority")
+	var phone = string("phone")
+	var email = string("email")
+	var address = string("address")
+
+	authorityInfo := &model.AuthorityContactInfo{
+		Phone:   phone,
+		Email:   email,
+		Address: address,
 	}
-	var userNames = [6]string{"管理员", "①号客户", "②号客户", "③号客户", "④号客户", "⑤号客户"}
-	var balances = [6]float64{0, 5000000, 5000000, 5000000, 5000000, 5000000}
-	//初始化账号数据
-	for i, val := range accountIds {
-		account := &model.Account{
-			AccountId: val,
-			UserName:  userNames[i],
-			Balance:   balances[i],
-		}
-		// 写入账本
-		if err := utils.WriteLedger(account, stub, model.AccountKey, []string{val}); err != nil {
-			return shim.Error(fmt.Sprintf("%s", err))
-		}
+
+	certificate := &model.Certificate{
+		HashFile:             hashfile,
+		HashPath:             hashpath,
+		CertID:               certId,
+		HoderID:              hoderId,
+		HoderName:            hoderName,
+		CertType:             certType,
+		IssueDate:            issueDate,
+		ExpiryDate:           expiryDate,
+		IssuingAuthority:     issuingAuthority,
+		AuthorityContactInfo: *authorityInfo,
+	}
+	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
 	}
 	return shim.Success([]byte("Init Success"))
 }

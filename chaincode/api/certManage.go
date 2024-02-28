@@ -10,6 +10,49 @@ import (
 	"time"
 )
 
+// Init 链码初始化
+func (t *BlockChainCertificate) MyInit(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("链码初始化")
+	var hashfile = string("hashfile")
+	var hashpath = string("hashpath")
+	var certId = string("certId")
+	var hoderId = string("hoderId")
+	var hoderName = string("hoderName")
+	var certType = string("certType")
+	var issueDate = string("2020-01-02")
+	var expiryDate = string("2020-01-02")
+	var issuingAuthority = string("issuingAuthority")
+	var phone = string("phone")
+	var email = string("email")
+	var address = string("address")
+
+	authorityInfo := &model.AuthorityContactInfo{
+		Phone:   phone,
+		Email:   email,
+		Address: address,
+	}
+
+	certificate := &model.Certificate{
+		HashFile:             hashfile,
+		HashPath:             hashpath,
+		CertID:               certId,
+		HoderID:              hoderId,
+		HoderName:            hoderName,
+		CertType:             certType,
+		IssueDate:            issueDate,
+		ExpiryDate:           expiryDate,
+		IssuingAuthority:     issuingAuthority,
+		AuthorityContactInfo: *authorityInfo,
+	}
+	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+		return shim.Error(fmt.Sprintf("%s", err))
+	}
+	return shim.Success([]byte("Init Success"))
+}
+
 // 管理系统：单次查询调用接口，证书作为查询主键
 func QueryCertByInfos(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var certificateList []model.Certificate

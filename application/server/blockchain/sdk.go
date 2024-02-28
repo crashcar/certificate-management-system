@@ -12,7 +12,7 @@ var (
 	sdk           *fabsdk.FabricSDK                                                  // Fabric SDK
 	configPath    = "config.yaml"                                                    // 配置文件路径
 	channelName   = "appchannel"                                                     // 通道名称
-	user          = "User1"                                                          // 用户
+	user          = "Admin"                                                          // 用户
 	chainCodeName = "fabric-realty"                                                  // 链码名称
 	endpoints     = []string{"peer0.cet.com", "peer0.ncre.com", "peer0.certman.com"} // 要发送交易的节点
 )
