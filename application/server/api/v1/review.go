@@ -71,7 +71,7 @@ func SaveFile(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if result := db.Create(&cert); result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("文件写入数据库失败：%s", err.Error()))
+			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("文件写入数据库失败：%s", result.Error.Error()))
 			return
 		}
 
@@ -265,6 +265,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		CertID := "cet.com-" + newID.String()
 
 		// 制作上链数据
+		issuingAuthority := "cet"
 		var bodyBytes [][]byte
 		bodyBytes = append(bodyBytes, []byte(hashString))
 		bodyBytes = append(bodyBytes, []byte(cid))
@@ -274,6 +275,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		bodyBytes = append(bodyBytes, []byte(certType))
 		bodyBytes = append(bodyBytes, []byte(currentDate))
 		bodyBytes = append(bodyBytes, []byte(expiryDate))
+		bodyBytes = append(bodyBytes, []byte(issuingAuthority))
 		bodyBytes = append(bodyBytes, []byte(aci.Phone))
 		bodyBytes = append(bodyBytes, []byte(aci.Email))
 		bodyBytes = append(bodyBytes, []byte(aci.Address))
