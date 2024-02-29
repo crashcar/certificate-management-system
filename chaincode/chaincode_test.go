@@ -13,77 +13,13 @@ import (
 	"time"
 )
 
-type AuthorityContactInfo struct {
-	Phone   string `json:"phone"`
-	Email   string `json:"email"`
-	Address string `json:"address"`
-}
-
-type BlockChainCertificate struct {
-	HashFile string `json:"hashFile"`
-	HashPath string `json:"hashPath"`
-	// metadata
-	CertID               string               `json:"certID"`
-	HoderID              string               `json:"hoderID"`
-	HoderName            string               `json:"hoderName"`
-	CertType             string               `json:"certType"`
-	IssueDate            string               `json:"issueDate"`
-	ExpiryDate           string               `json:"expiryDate"`
-	IssuingAuthority     string               `json:"issuingAuthority"`
-	AuthorityContactInfo AuthorityContactInfo `json:"authorityContactInfo"`
-	Status               string               `json:"status"`
-}
-
-type BlockChainRealEstate struct {
-	RealEstateID string `json:"realEstateId"` //车辆ID
-	Proprietor   string `json:"proprietor"`   //所有者(客户)(客户AccountId)
-	Encumbrance  bool   `json:"encumbrance"`  //是否作为担保
-	Carmodel     string `json:"carmodel"`
-	Car_scz      string `json:"car_scz"`
-	Car_scd      string `json:"car_scd"`
-	Car_scsj     string `json:"car_scsj"`
-	Car_lbjph    string `json:"car_lbjph"`
-	Car_lbjscz   string `json:"car_lbjscz"`
-	Car_lbjscd   string `json:"car_lbjscd"`
-	Car_lbjscsj  string `json:"car_lbjscsj"`
-}
-
-// Init 链码初始化
-func (t *BlockChainRealEstate) Init(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("链码初始化")
-	//初始化默认数据
-	var accountIds = [6]string{
-		"5feceb66ffc8",
-		"6b86b273ff34",
-		"d4735e3a265e",
-		"4e07408562be",
-		"4b227777d4dd",
-		"ef2d127de37b",
-	}
-	var userNames = [6]string{"管理员", "①号客户", "②号客户", "③号客户", "④号客户", "⑤号客户"}
-	var balances = [6]float64{0, 5000000, 5000000, 5000000, 5000000, 5000000}
-	//初始化账号数据
-	for i, val := range accountIds {
-		account := &model.Account{
-			AccountId: val,
-			UserName:  userNames[i],
-			Balance:   balances[i],
-		}
-		// 写入账本
-		if err := utils.WriteLedger(account, stub, model.AccountKey, []string{val}); err != nil {
-			return shim.Error(fmt.Sprintf("%s", err))
-		}
-	}
-	return shim.Success([]byte("Init Success"))
-}
-
-func (t *BlockChainCertificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *Certificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("链码初始化")
 	var hashfile = string("hashfile")
 	var hashpath = string("hashpath")
 	var certId = string("certId")
-	var hoderId = string("hoderId")
-	var hoderName = string("hoderName")
+	var holderId = string("holderId")
+	var holderName = string("holderName")
 	var certType = string("certType")
 	var issueDate = string("2020-01-02")
 	var expiryDate = string("2020-01-02")
@@ -102,25 +38,25 @@ func (t *BlockChainCertificate) Init(stub shim.ChaincodeStubInterface) pb.Respon
 		HashFile:             hashfile,
 		HashPath:             hashpath,
 		CertID:               certId,
-		HoderID:              hoderId,
-		HoderName:            hoderName,
+		HolderID:             holderId,
+		HolderName:           holderName,
 		CertType:             certType,
 		IssueDate:            issueDate,
 		ExpiryDate:           expiryDate,
 		IssuingAuthority:     issuingAuthority,
 		AuthorityContactInfo: *authorityInfo,
 	}
-	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HolderID, certificate.HolderName, certificate.IssuingAuthority}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
-	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
 	return shim.Success([]byte("Init Success"))
 }
 
 // Invoke 实现Invoke接口调用智能合约
-func (t *BlockChainCertificate) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *Certificate) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	funcName, args := stub.GetFunctionAndParameters()
 	switch funcName {
 	case "Init":
@@ -178,7 +114,7 @@ func (t *BlockChainCertificate) Invoke(stub shim.ChaincodeStubInterface) pb.Resp
 //}
 
 func initTest(t *testing.T) *shim.MockStub {
-	scc := new(BlockChainCertificate)
+	scc := new(Certificate)
 	stub := shim.NewMockStub("new", scc)
 	checkInit(t, stub, [][]byte{[]byte("init")})
 	return stub
@@ -223,15 +159,15 @@ func Test_QueryAccountList(t *testing.T) {
 		string(checkInvoke(t, stub, [][]byte{
 			[]byte("queryCertByInfos"),
 			[]byte("certId"),
-			[]byte("hoderId"),
-			[]byte("hoderName"),
+			[]byte("holderId"),
+			[]byte("holderName"),
 			[]byte("issuingAuthority"),
 		}).Payload)))
 	fmt.Println(fmt.Sprintf("3、测试获取单个数据\n%s",
 		string(checkInvoke(t, stub, [][]byte{
 			[]byte("queryCertByAuthority"),
 			[]byte("issuingAuthority"),
-			[]byte("hoderId"),
+			[]byte("holderId"),
 		}).Payload)))
 	fmt.Println(fmt.Sprintf("4、测试获取无效数据\n%s",
 		string(checkInvoke(t, stub, [][]byte{
@@ -248,8 +184,8 @@ func Test_UploadCertOrg(t *testing.T) {
 		[]byte("hashfile"),
 		[]byte("hashpath"),
 		[]byte("certId"),
-		[]byte("hoderId"),
-		[]byte("hoderName"),
+		[]byte("holderId"),
+		[]byte("holderName"),
 		[]byte("certType"),
 		[]byte("2020-01-02"),
 		[]byte("2020-01-02"),
@@ -264,8 +200,8 @@ func Test_UploadCertOrg(t *testing.T) {
 		[]byte("hashfile"),
 		[]byte("hashpath"),
 		[]byte("certId"),
-		[]byte("hoderId"),
-		[]byte("hoderName"),
+		[]byte("holderId"),
+		[]byte("holderName"),
 		[]byte("certType"),
 		[]byte("2020-01-03"),
 		[]byte("2020-01-02"),

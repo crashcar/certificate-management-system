@@ -124,9 +124,10 @@ type Certificate struct {
 	HashPath string `json:"hashPath"`
 	// metadata
 	CertID               string               `json:"certID"`
-	HoderID              string               `json:"hoderID"`
-	HoderName            string               `json:"hoderName"`
+	HolderID             string               `json:"holderID"`
+	HolderName           string               `json:"holderName"`
 	CertType             string               `json:"certType"`
+	Reviewer             string               `json:"reviewer"`
 	IssueDate            string               `json:"issueDate"`
 	ExpiryDate           string               `json:"expiryDate"`
 	IssuingAuthority     string               `json:"issuingAuthority"`

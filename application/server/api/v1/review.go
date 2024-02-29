@@ -55,7 +55,7 @@ func SaveFile(db *gorm.DB) gin.HandlerFunc {
 		formattedTime := now.Format("20060102150405")
 		fileExt := filepath.Ext(file.Filename)
 		newFileName := fmt.Sprintf("%s-%s%s", body.UserID, formattedTime, fileExt)
-		dst := filepath.Join("./uploads/certificates", newFileName)
+		dst := filepath.Join("./uploads/certificates/", newFileName)
 		if err := c.SaveUploadedFile(file, dst); err != nil {
 			appG.Response(http.StatusInternalServerError, "文件保存到服务器失败", err)
 			return

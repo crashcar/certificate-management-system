@@ -23,8 +23,8 @@ type Certificate struct {
 	HashPath string `json:"hashPath"`
 	// metadata
 	CertID               string               `json:"certID"`
-	HoderID              string               `json:"hoderID"`
-	HoderName            string               `json:"hoderName"`
+	HolderID             string               `json:"holderID"`
+	HolderName           string               `json:"holderName"`
 	CertType             string               `json:"certType"`
 	IssueDate            string               `json:"issueDate"`
 	ExpiryDate           string               `json:"expiryDate"`
@@ -39,8 +39,8 @@ func (t *Certificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	var hashfile = string("hashfile")
 	var hashpath = string("hashpath")
 	var certId = string("certId")
-	var hoderId = string("hoderId")
-	var hoderName = string("hoderName")
+	var holderId = string("holderId")
+	var holderName = string("holderName")
 	var certType = string("certType")
 	var issueDate = string("2020-01-02")
 	var expiryDate = string("2020-01-02")
@@ -59,18 +59,18 @@ func (t *Certificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 		HashFile:             hashfile,
 		HashPath:             hashpath,
 		CertID:               certId,
-		HoderID:              hoderId,
-		HoderName:            hoderName,
+		HolderID:             holderId,
+		HolderName:           holderName,
 		CertType:             certType,
 		IssueDate:            issueDate,
 		ExpiryDate:           expiryDate,
 		IssuingAuthority:     issuingAuthority,
 		AuthorityContactInfo: *authorityInfo,
 	}
-	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HolderID, certificate.HolderName, certificate.IssuingAuthority}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
-	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
 	return shim.Success([]byte("Init Success"))

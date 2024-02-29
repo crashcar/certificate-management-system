@@ -77,7 +77,7 @@ func QueryCertByAuthority(stub shim.ChaincodeStubInterface, args []string) pb.Re
 	}
 	certificateListByte, err := json.Marshal(certificateList)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("QueryCertQueryCertByAuthorityyInfos-序列化出错: %s", err))
+		return shim.Error(fmt.Sprintf("QueryCertQueryCertByAuthorityInfos-序列化出错: %s", err))
 	}
 	return shim.Success(certificateListByte)
 }
@@ -122,8 +122,8 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	hashFile := args[0]
 	hashPath := args[1]
 	certID := args[2]
-	hoderID := args[3]
-	hoderName := args[4]
+	holderID := args[3]
+	holderName := args[4]
 	certType := args[5]
 	issueDate := args[6]
 	expiryDate := args[7]
@@ -155,8 +155,8 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		HashFile:             hashFile,
 		HashPath:             hashPath,
 		CertID:               certID,
-		HoderID:              hoderID,
-		HoderName:            hoderName,
+		HolderID:             holderID,
+		HolderName:           holderName,
 		CertType:             certType,
 		IssueDate:            issueDate,
 		ExpiryDate:           expiryDate,
@@ -165,16 +165,16 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	}
 
 	if expireTime.Before(todayDate) {
-		certificate.Status = model.CertStatusConstant()["valid"]
-	} else {
 		certificate.Status = model.CertStatusConstant()["expired"]
+	} else {
+		certificate.Status = model.CertStatusConstant()["valid"]
 	}
 	//写入账本
 
-	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HolderID, certificate.HolderName, certificate.IssuingAuthority}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
-	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HoderID}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID, certificate.CertID}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
 	//将成功创建的信息返回
@@ -210,7 +210,10 @@ func DeleteCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		}
 		certificateList = append(certificateList, certificate)
 		//删除证书
-		if err := utils.DelLedger(stub, model.CertificateKey, []string{certificate.CertID, certificate.HoderID, certificate.HoderName, certificate.IssuingAuthority}); err != nil {
+		if err := utils.DelLedger(stub, model.CertificateKey, []string{certificate.CertID, certificate.HolderID, certificate.HolderName, certificate.IssuingAuthority}); err != nil {
+			return shim.Error(fmt.Sprintf("%s", err))
+		}
+		if err := utils.DelLedger(stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID, certificate.CertID}); err != nil {
 			return shim.Error(fmt.Sprintf("%s", err))
 		}
 	}
