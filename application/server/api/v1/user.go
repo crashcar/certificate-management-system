@@ -62,7 +62,7 @@ func UserRegister(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if result := db.Create(&user); result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("创建账户%s", err.Error()))
+			appG.Response(http.StatusInternalServerError, "数据库操作：创建账户失败", result.Error.Error())
 			return
 		}
 		appG.Response(http.StatusOK, "Register_Success", "用户注册成功")
@@ -111,7 +111,8 @@ type adminRegisterRequestBody struct {
 }
 
 // AdminRegister  管理员注册
-// TODO: 管理员注册逻辑存在问题
+// 管理员注册只输入密码和审查类型，管理员ID由系统（数据库自增主键）分配
+// 返回系统分配的管理员ID
 func AdminRegister(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := app.Gin{C: c}
@@ -138,7 +139,7 @@ func AdminRegister(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if result := db.Create(&admin); result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("创建账户%s", err.Error()))
+			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("创建账户%s", result.Error.Error()))
 			return
 		}
 

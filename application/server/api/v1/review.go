@@ -184,13 +184,6 @@ type reviewApprovedRequestBody struct {
 	IssuingAuthority string `json:"issuingAuthority"` // 测试不同机构
 }
 
-// for test
-// type reviewApprovedRespondBody struct {
-//  CertID     string `json:"certID"`
-//  HashString string `json:"hashString"`
-//  CID        string `json:"cid"`
-// }
-
 type authorityContactInfo struct {
 	Phone   string
 	Email   string
@@ -216,8 +209,8 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusBadRequest, "参数解析失败", err)
 			return
 		}
-		if body.ID == 0 {
-			appG.Response(http.StatusBadRequest, "certs表项ID不能为0", err)
+		if body.ID == 0 || body.IssuingAuthority == "" {
+			appG.Response(http.StatusBadRequest, "失败", "certs表项ID为0或issuingAuthority为空字符串")
 			return
 		}
 
@@ -225,12 +218,12 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		var cert model.Cert
 		result := db.First(&cert, body.ID)
 		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", err)
+			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
 		}
 		holderID := cert.UploaderID
 		holderName := cert.UploaderName
-		certType := "cet.com-" + cert.CertType
+		certType := cert.CertType
 		currentDate := time.Now().Format("2006-01-02")
 		expiryDate := time.Now().AddDate(10, 0, 0).Format("2006-01-02")
 
@@ -264,9 +257,8 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		CertID := "cet.com-" + newID.String()
-		issuingAuthority := "cet"
+
 		// 制作上链数据
-		// issuingAuthority := "cet.com"
 		issuingAuthority := body.IssuingAuthority // 测试不同机构
 		var bodyBytes [][]byte
 		bodyBytes = append(bodyBytes, []byte(hashString))
@@ -277,7 +269,6 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		bodyBytes = append(bodyBytes, []byte(certType))
 		bodyBytes = append(bodyBytes, []byte(currentDate))
 		bodyBytes = append(bodyBytes, []byte(expiryDate))
-		bodyBytes = append(bodyBytes, []byte(issuingAuthority))
 		bodyBytes = append(bodyBytes, []byte(issuingAuthority))
 		bodyBytes = append(bodyBytes, []byte(aci.Phone))
 		bodyBytes = append(bodyBytes, []byte(aci.Email))
@@ -298,14 +289,6 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 
 		// 通知用户
 		// TODO
-
-		// 测试certID、hashstring生成，ipfs的cid返回
-		// reviewApprovedRespondBody := reviewApprovedRespondBody{
-		//  CertID:     CertID,
-		//  HashString: hashString,
-		//  CID:        cid,
-		// }
-		// appG.Response(http.StatusOK, "上传IPFS成功", reviewApprovedRespondBody)
 	}
 }
 
@@ -335,7 +318,7 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 		var cert model.Cert
 		result := db.First(&cert, body.ID)
 		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", err)
+			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
 		}
 

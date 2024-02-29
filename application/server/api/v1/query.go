@@ -14,16 +14,12 @@ import (
 
 /**** 管理系统查询部分 ****/
 
-//根据证书ID查询证书
+// 根据证书ID查询证书
 type queryCertByUserSysRequestBody struct {
-	CertID string `json:"certID"`
+	UserID string `json:"userID"`
 }
 
-type queryCertByFullInfoSysRequestBody struct {
-	CertID  string `json:"certID"`
-	HoderID string `json:"holderID"`
-}
-
+// 此功能暂时不使用，因为不符合现实情境
 // 管理系统：查看用户所有证书，通过用户id查询用户在所有机构的所有证书
 func QueryCertByUserSys(c *gin.Context) {
 	appG := app.Gin{C: c}
@@ -33,18 +29,14 @@ func QueryCertByUserSys(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, "参数解析失败", err)
 		return
 	}
-	function := ""
-	if body.CertID == "" {
-		function = "queryCertByInfosLists"
-	} else {
-		function = "queryCertByInfos"
+	if body.UserID == "" {
+		appG.Response(http.StatusBadRequest, "参数有误", "userID为空字符串")
 	}
+
 	var bodyBytes [][]byte
-	if body.CertID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.CertID))
-	}
+
 	//调用智能合约
-	resp, err := bc.ChannelQuery("queryCertByInfos", bodyBytes)
+	resp, err := bc.ChannelQuery("queryCertByInfosLists", bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
@@ -56,26 +48,6 @@ func QueryCertByUserSys(c *gin.Context) {
 		return
 	}
 	appG.Response(http.StatusOK, "成功", data)
-
-	// ipfsnode := "certman-ipfs:5001"
-	// buffer, err := ipfs.GetFileFromIPFS(appG, body.CID, ipfsnode)
-	// if err != nil {
-	// 	appG.Response(http.StatusInternalServerError, "从ipfs获取文件失败", err)
-	// 	return
-	// }
-	// file, err := os.Create("./uploads/certificates/testfile.pdf")
-	// if err != nil {
-	// 	appG.Response(http.StatusInternalServerError, "新建pdf失败", err)
-	// }
-	// defer file.Close()
-
-	// // 写入数据
-	// _, err = file.Write(buffer)
-	// if err != nil {
-	// 	appG.Response(http.StatusInternalServerError, "写入文件时出错", err)
-	// 	return
-	// }
-	// appG.Response(http.StatusOK, "成功", "从ipfs读取文件成功")
 }
 
 type queryCertByFullInfoSysRequestBody struct {
@@ -93,31 +65,16 @@ func QueryCertByFullInfoSys(c *gin.Context) {
 		return
 	}
 	if body.HolderID == "" || body.HolderName == "" || body.CertID == "" {
-		appG.Response(http.StatusBadRequest, "参数有误", "参数有误")
-	function := ""
-	if body.CertID == "" && body.HoderID == "" {
-		function = "queryCertByInfosLists"
-	} else if body.CertID == "" && body.HoderID != "" {
-		appG.Response(http.StatusBadRequest, "CertId为空，HoderId不为空", "参数有误")
-		return
-	} else {
-		function = "queryCertByInfos"
+		appG.Response(http.StatusBadRequest, "参数有误", "certID或holderID或holderName为空字符串")
 	}
 
 	var bodyBytes [][]byte
 	bodyBytes = append(bodyBytes, []byte(body.CertID))
 	bodyBytes = append(bodyBytes, []byte(body.HolderID))
 	bodyBytes = append(bodyBytes, []byte(body.HolderName))
-	if body.CertID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.CertID))
-	}
-
-	if body.HoderID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.HoderID))
-	}
 
 	//调用智能合约
-	resp, err := bc.ChannelQuery(function, bodyBytes)
+	resp, err := bc.ChannelQuery("queryCertByInfos", bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
@@ -136,7 +93,7 @@ func QueryCertByFullInfoSys(c *gin.Context) {
 
 type queryCertByUserOrgRequestBody struct {
 	IssuingAuthority string `json:"issuingAuthority"`
-	HoderID          string `json:"holder"`
+	HolderID         string `json:"holderID"`
 }
 
 // org：-用户- 通过证书持有人的id查询该人在本机构的所有证书
@@ -148,18 +105,14 @@ func QueryCertByUserOrg(c *gin.Context) {
 		return
 	}
 	if body.IssuingAuthority == "" || body.HolderID == "" {
-		appG.Response(http.StatusBadRequest, "参数有误", "参数有误")
+		appG.Response(http.StatusBadRequest, "参数有误", "issuingAuthority或holderID为空")
 		return
 	}
 
 	var bodyBytes [][]byte
+	bodyBytes = append(bodyBytes, []byte(body.IssuingAuthority))
+	bodyBytes = append(bodyBytes, []byte(body.HolderID))
 
-	if body.IssuingAuthority != "" {
-		bodyBytes = append(bodyBytes, []byte(body.IssuingAuthority))
-	}
-	if body.HoderID != "" {
-		bodyBytes = append(bodyBytes, []byte(body.HoderID))
-	}
 	//调用智能合约
 	resp, err := bc.ChannelQuery("queryCertByAuthority", bodyBytes)
 	if err != nil {
@@ -188,7 +141,7 @@ func QueryCertOrg(c *gin.Context) {
 		return
 	}
 	if body.IssuingAuthority == "" {
-		appG.Response(http.StatusBadRequest, "参数有误", "参数有误")
+		appG.Response(http.StatusBadRequest, "参数有误", "issuingAuthority为空字符串")
 		return
 	}
 
@@ -196,7 +149,6 @@ func QueryCertOrg(c *gin.Context) {
 	bodyBytes = append(bodyBytes, []byte(body.IssuingAuthority))
 
 	//调用智能合约
-	resp, err := bc.ChannelQuery("queryCertByAuthority", bodyBytes)
 	resp, err := bc.ChannelQuery("queryCertByAuthority", bodyBytes)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
