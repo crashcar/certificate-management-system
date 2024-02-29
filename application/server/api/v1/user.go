@@ -10,6 +10,7 @@ import (
 
 	"application/model"
 	"application/pkg/app"
+	"application/pkg/notification"
 )
 
 type RegisterRequestBody struct {
@@ -178,6 +179,33 @@ func AdminLogin(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		appG.Response(http.StatusOK, "Login_Success", "管理员登录成功")
+		appG.Response(http.StatusOK, "成功", "admin")
+	}
+}
+
+type getNotificationRequestBody struct {
+	UserID string `json:"userID"`
+}
+
+func GetUserNotifications(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		appG := app.Gin{C: c}
+		body := new(getNotificationRequestBody)
+
+		if err := c.ShouldBind(body); err != nil {
+			appG.Response(http.StatusBadRequest, "参数解析失败", fmt.Sprintf("参数出错%s", err.Error()))
+			return
+		}
+		if body.UserID == "" {
+			appG.Response(http.StatusBadRequest, "参数解析失败", "userID为空字符串")
+			return
+		}
+
+		notifs, err := notification.GetUnreadNotifications(db, body.UserID)
+		if err != nil {
+			appG.Response(http.StatusBadRequest, "获取用户通知失败", err.Error())
+		}
+
+		appG.Response(http.StatusOK, "获取用户通知成功", notifs)
 	}
 }

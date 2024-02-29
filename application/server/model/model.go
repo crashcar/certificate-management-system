@@ -113,3 +113,13 @@ var CertStatusConstant = func() map[string]string {
 		"invaild": "无效",  //已撤销（删除）证书
 	}
 }
+
+type Notification struct {
+	ID           uint      `gorm:"primary_key"`   // 主键
+	UserID       string    `gorm:"not null"`      // 接收用户的ID
+	AdminID      uint      `gorm:"not null"`      // 发送管理员的ID
+	Content      string    `gorm:"not null"`      // 消息内容
+	IsRead       bool      `gorm:"default:false"` // 是否已读
+	CreatedAt    time.Time // 发送时间
+	DenialReason *string
+}

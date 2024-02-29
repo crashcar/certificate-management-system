@@ -20,6 +20,7 @@ import (
 	"application/pkg/app"
 	"application/pkg/cryptoutils"
 	"application/pkg/ipfs"
+	"application/pkg/notification"
 )
 
 type uploadRequestBody struct {
@@ -216,7 +217,9 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 
 		// 根据 body.ID 从数据库取出对应的项
 		var cert model.Cert
-		result := db.First(&cert, body.ID)
+		certDbId := body.CertDBID
+		adminId := body.AdminID
+		result := db.First(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
@@ -244,7 +247,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusInternalServerError, "文件系统删除文件错误", err)
 			return
 		}
-		result = db.Delete(&cert, body.ID)
+		result = db.Delete(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", err)
 			return
@@ -277,23 +280,36 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		//调用智能合约数据上链
 		resp, err := bc.ChannelExecute("uploadCertOrg", bodyBytes)
 		if err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", err.Error())
+			appG.Response(http.StatusInternalServerError, "数据上链失败", err.Error())
 			return
 		}
 		var data map[string]interface{}
 		if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", err.Error())
+			appG.Response(http.StatusInternalServerError, "账本数据unmarshal失败", err.Error())
 			return
 		}
 		appG.Response(http.StatusOK, "成功", data)
 
 		// 通知用户
-		// TODO
+		err = notification.CreateNotification(db, holderID, adminId, "证书审核通过", nil)
+		if err != nil {
+			appG.Response(http.StatusInternalServerError, "创建通知失败", err.Error())
+		}
+
+		// 测试certID、hashstring生成，ipfs的cid返回
+		// reviewApprovedRespondBody := reviewApprovedRespondBody{
+		// 	CertID:     CertID,
+		// 	HashString: hashString,
+		// 	CID:        cid,
+		// }
+		// appG.Response(http.StatusOK, "上传IPFS成功", reviewApprovedRespondBody)
 	}
 }
 
 type reviewDenialRequestBody struct {
-	ID uint `json:"id"`
+	CertDBID     uint   `json:"certDbID"`
+	AdminID      uint   `json:"adminID"`
+	DenialReason string `json:"denialReason"`
 }
 
 // 管理员审核接口
@@ -309,14 +325,16 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusBadRequest, "参数解析失败", err)
 			return
 		}
-		if body.ID == 0 {
-			appG.Response(http.StatusBadRequest, "certs表项ID不能为0", err)
+		if body.CertDBID == 0 || body.AdminID == 0 || body.DenialReason == "" {
+			appG.Response(http.StatusBadRequest, "certDbId或adminId为0, 或拒绝理由为空", err)
 			return
 		}
 
 		// 根据 body.ID 从数据库取出对应的项
 		var cert model.Cert
-		result := db.First(&cert, body.ID)
+		certDbId := body.CertDBID
+		adminId := body.AdminID
+		result := db.First(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
@@ -328,10 +346,16 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusInternalServerError, "文件系统删除文件错误", err)
 			return
 		}
-		result = db.Delete(&cert, body.ID)
+		result = db.Delete(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", err)
 			return
+		}
+
+		denialReason := body.DenialReason
+		err = notification.CreateNotification(db, cert.UploaderID, adminId, "证书审核未通过", &denialReason)
+		if err != nil {
+			appG.Response(http.StatusInternalServerError, "创建通知失败", err.Error())
 		}
 
 		appG.Response(http.StatusOK, "成功", "证书审核不通过，成功删除证书数据")
