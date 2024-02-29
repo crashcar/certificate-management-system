@@ -1,4 +1,4 @@
-FROM golang:1.20 AS app
+FROM golang:1.22 AS app
 ENV GO111MODULE=on
 ENV GOPROXY https://goproxy.cn,direct
 WORKDIR /root/chiikawa
