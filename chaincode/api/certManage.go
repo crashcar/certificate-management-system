@@ -46,14 +46,14 @@ func QueryCertByInfosLists(stub shim.ChaincodeStubInterface, args []string) pb.R
 			var certificate model.Certificate
 			err := json.Unmarshal(v, &certificate)
 			if err != nil {
-				return shim.Error(fmt.Sprintf("QueryCertByUserSys-反序列化出错: %s", err))
+				return shim.Error(fmt.Sprintf("QueryCertByInfosLists-反序列化出错: %s", err))
 			}
 			certificateList = append(certificateList, certificate)
 		}
 	}
 	certificateListByte, err := json.Marshal(certificateList)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("QueryCertByUserSys-序列化出错: %s", err))
+		return shim.Error(fmt.Sprintf("QueryCertByInfosLists-序列化出错: %s", err))
 	}
 	return shim.Success(certificateListByte)
 }
@@ -70,14 +70,14 @@ func QueryCertByAuthority(stub shim.ChaincodeStubInterface, args []string) pb.Re
 			var certificate model.Certificate
 			err := json.Unmarshal(v, &certificate)
 			if err != nil {
-				return shim.Error(fmt.Sprintf("QueryCertByInfos-反序列化出错: %s", err))
+				return shim.Error(fmt.Sprintf("QueryCertByAuthority-反序列化出错: %s", err))
 			}
 			certificateList = append(certificateList, certificate)
 		}
 	}
 	certificateListByte, err := json.Marshal(certificateList)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("QueryCertByInfos-序列化出错: %s", err))
+		return shim.Error(fmt.Sprintf("QueryCertQueryCertByAuthorityyInfos-序列化出错: %s", err))
 	}
 	return shim.Success(certificateListByte)
 }
@@ -94,14 +94,14 @@ func QueryCertByAuthorityLists(stub shim.ChaincodeStubInterface, args []string) 
 			var certificate model.Certificate
 			err := json.Unmarshal(v, &certificate)
 			if err != nil {
-				return shim.Error(fmt.Sprintf("QueryCertByUserSys-反序列化出错: %s", err))
+				return shim.Error(fmt.Sprintf("QueryCertByAuthorityLists-反序列化出错: %s", err))
 			}
 			certificateList = append(certificateList, certificate)
 		}
 	}
 	certificateListByte, err := json.Marshal(certificateList)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("QueryCertByUserSys-序列化出错: %s", err))
+		return shim.Error(fmt.Sprintf("QueryCertByAuthorityLists-序列化出错: %s", err))
 	}
 	return shim.Success(certificateListByte)
 }
@@ -206,7 +206,7 @@ func DeleteCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		var certificate model.Certificate
 		err := json.Unmarshal(v, &certificate)
 		if err != nil {
-			return shim.Error(fmt.Sprintf("QueryCertByUserSys-反序列化出错: %s", err))
+			return shim.Error(fmt.Sprintf("DeleteCertOrg-反序列化出错: %s", err))
 		}
 		certificateList = append(certificateList, certificate)
 		//删除证书

@@ -180,7 +180,8 @@ func ShowProcessedCert(db *gorm.DB) gin.HandlerFunc {
 }
 
 type reviewApprovedRequestBody struct {
-	ID uint `json:"id"`
+	ID               uint   `json:"id"`
+	IssuingAuthority string `json:"issuingAuthority"` // 测试不同机构
 }
 
 // for test
@@ -265,6 +266,8 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		CertID := "cet.com-" + newID.String()
 		issuingAuthority := "cet"
 		// 制作上链数据
+		// issuingAuthority := "cet.com"
+		issuingAuthority := body.IssuingAuthority // 测试不同机构
 		var bodyBytes [][]byte
 		bodyBytes = append(bodyBytes, []byte(hashString))
 		bodyBytes = append(bodyBytes, []byte(cid))
@@ -274,6 +277,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		bodyBytes = append(bodyBytes, []byte(certType))
 		bodyBytes = append(bodyBytes, []byte(currentDate))
 		bodyBytes = append(bodyBytes, []byte(expiryDate))
+		bodyBytes = append(bodyBytes, []byte(issuingAuthority))
 		bodyBytes = append(bodyBytes, []byte(issuingAuthority))
 		bodyBytes = append(bodyBytes, []byte(aci.Phone))
 		bodyBytes = append(bodyBytes, []byte(aci.Email))

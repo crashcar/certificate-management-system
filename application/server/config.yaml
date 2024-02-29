@@ -4,7 +4,7 @@ version: 1.0.0
 ############  证书系统  ############
 client:
   # 客户端所属的组织，必须是organizations定义的组织
-  organization: CERTMAN
+  organization: CET
   # 日志级别
   logging:
     level: info
@@ -18,12 +18,12 @@ channels:
     orderers:
       - orderer.certmanorder.com
     peers:
-      peer0.certman.com:
+      peer0.cet.com:
         endorsingPeer: true
         chaincodeQuery: true
         ledgerQuery: true
         eventSource: true
-      peer1.certman.com:
+      peer1.cet.com:
         endorsingPeer: true
         chaincodeQuery: true
         ledgerQuery: true
@@ -31,12 +31,12 @@ channels:
 
 # 组织配置
 organizations:
-  CERTMAN:
-    mspid: "CERTMANMSP"
-    cryptoPath: peerOrganizations/certman.com/users/Admin@certman.com/msp
+  CET:
+    mspid: "CETMSP"
+    cryptoPath: peerOrganizations/cet.com/users/Admin@cet.com/msp
     peers:
-      - peer0.certman.com
-      - peer1.certman.com
+      - peer0.cet.com
+      - peer1.cet.com
 
 # orderer节点列表
 orderers:

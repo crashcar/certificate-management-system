@@ -3,3 +3,4 @@
 log/
 application/ipfs_data
 go.work.sum
+.DS_Store
