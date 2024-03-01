@@ -14,12 +14,12 @@ import (
 )
 
 // 使用 AES 密钥加密文件
-func EncryptContent(content []byte, key []byte, appG app.Gin) ([]byte, error) {
+func EncryptContent(content []byte, key []byte, appG app.Gin) []byte {
 	// 创建cipher.Block实例
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("创建cipher.Block实例时出错: %s", err.Error()))
-		return nil, err
+		return nil
 	}
 
 	// 如果AES加密需要IV，可以在这里生成，这里假设key足够长且为了简化直接使用key前16字节作为IV
@@ -39,16 +39,16 @@ func EncryptContent(content []byte, key []byte, appG app.Gin) ([]byte, error) {
 
 	// 创建bytes.Buffer并写入加密后的数据
 	buffer := bytes.NewBuffer(encrypted)
-	return buffer.Bytes(), nil
+	return buffer.Bytes()
 }
 
 // 使用 AES 密钥解密文件
-func DecryptContent(encryptContent []byte, key []byte, appG app.Gin) ([]byte, error) {
+func DecryptContent(encryptContent []byte, key []byte, appG app.Gin) []byte {
 	// 创建cipher.Block实例
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("创建cipher.Block实例时出错: %s", err.Error()))
-		return nil, err
+		return nil
 	}
 
 	// IV, 加密时使用的是key的前16字节
@@ -66,19 +66,19 @@ func DecryptContent(encryptContent []byte, key []byte, appG app.Gin) ([]byte, er
 	padLen := int(padding)
 	if padLen > aes.BlockSize || padLen == 0 {
 		appG.Response(http.StatusInternalServerError, "失败", "解密失败，填充错误")
-		return nil, err
+		return nil
 	}
 
 	// 验证并去除填充
 	for _, v := range decrypted[len(decrypted)-padLen:] {
 		if v != padding {
 			appG.Response(http.StatusInternalServerError, "失败", "解密失败，填充错误")
-			return nil, err
+			return nil
 		}
 	}
 	decrypted = decrypted[:len(decrypted)-padLen]
 
-	return decrypted, nil
+	return decrypted
 }
 
 func HashFile(filePath string, appG app.Gin) string {
@@ -98,6 +98,19 @@ func HashFile(filePath string, appG app.Gin) string {
 		appG.Response(http.StatusInternalServerError, "计算hash失败", err)
 		return ""
 	}
+
+	// 计算最终的哈希值并将其格式化为16进制字符串
+	hashInBytes := hash.Sum(nil)
+	hashString := hex.EncodeToString(hashInBytes)
+	return hashString
+}
+
+func HashBuffer(buffer []byte) string {
+	// 创建一个新的SHA256哈希对象
+	hash := sha256.New()
+
+	// 将buffer的内容写入哈希对象
+	hash.Write(buffer) // 注意：这里不需要错误处理，因为hash.Write在写入bytes时不会返回错误
 
 	// 计算最终的哈希值并将其格式化为16进制字符串
 	hashInBytes := hash.Sum(nil)

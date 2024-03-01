@@ -14,6 +14,7 @@ require (
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.0
 	github.com/hyperledger/fabric-sdk-go v1.0.0
 	github.com/ipfs/go-ipfs-api v0.7.0
 	github.com/robfig/cron/v3 v3.0.1

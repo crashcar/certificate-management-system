@@ -10,6 +10,8 @@ import (
 
 	bc "application/blockchain"
 	"application/pkg/app"
+	"application/pkg/cryptoutils"
+	"application/pkg/ipfs"
 )
 
 /**** 管理系统查询部分 ****/
@@ -47,7 +49,8 @@ func QueryCertByUserSys(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
-	appG.Response(http.StatusOK, "成功", data)
+
+	processDataAndRespond(data, appG)
 }
 
 type queryCertByFullInfoSysRequestBody struct {
@@ -86,7 +89,8 @@ func QueryCertByFullInfoSys(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
-	appG.Response(http.StatusOK, "成功", data)
+
+	processDataAndRespond(data, appG)
 }
 
 /**** 证书机构查询部分 ****/
@@ -125,7 +129,8 @@ func QueryCertByUserOrg(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
-	appG.Response(http.StatusOK, "成功", data)
+
+	processDataAndRespond(data, appG)
 }
 
 type queryCertOrgRequestBody struct {
@@ -160,5 +165,31 @@ func QueryCertOrg(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, "失败", err.Error())
 		return
 	}
-	appG.Response(http.StatusOK, "成功", data)
+
+	processDataAndRespond(data, appG)
+}
+
+func processDataAndRespond(data []map[string]interface{}, appG app.Gin) {
+	for i, item := range data {
+		// 获取cid
+		var cid string
+		if hashPath, ok := item["hashPath"].(string); ok {
+			cid = hashPath
+		}
+
+		// 获取从ipfs获取文件
+		ipfsnode := "certman-ipfs:5001"
+		buffer := ipfs.GetFileFromIPFS(appG, cid, ipfsnode)
+
+		// 哈希buffer，返回前端显示当前cid文件的哈希以便对比
+		retrievedHash := cryptoutils.HashBuffer(buffer)
+
+		// 将retrievedHash加入到item中
+		item["retrievedHash"] = retrievedHash
+
+		// 更新data
+		data[i] = item
+	}
+
+	appG.Response(http.StatusOK, "链上查询成功", data)
 }
