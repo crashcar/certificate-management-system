@@ -25,6 +25,7 @@ type Certificate struct {
 	CertID               string               `json:"certID"`
 	HolderID             string               `json:"holderID"`
 	HolderName           string               `json:"holderName"`
+	Reviewer             string               `json:"reviewer"`
 	CertType             string               `json:"certType"`
 	IssueDate            string               `json:"issueDate"`
 	ExpiryDate           string               `json:"expiryDate"`
@@ -70,7 +71,7 @@ func (t *Certificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HolderID, certificate.HolderName, certificate.IssuingAuthority}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
-	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID, certificate.CertID}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
 	return shim.Success([]byte("Init Success"))

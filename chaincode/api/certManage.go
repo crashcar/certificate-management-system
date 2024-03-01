@@ -125,12 +125,13 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	holderID := args[3]
 	holderName := args[4]
 	certType := args[5]
-	issueDate := args[6]
-	expiryDate := args[7]
-	issuingAuthority := args[8]
-	authorityPhone := args[9]
-	authorityEmail := args[10]
-	authorityAddress := args[11]
+	reviewer := args[6]
+	issueDate := args[7]
+	expiryDate := args[8]
+	issuingAuthority := args[9]
+	authorityPhone := args[10]
+	authorityEmail := args[11]
+	authorityAddress := args[12]
 	//输入参数的逻辑检查：待添加
 
 	authorityContactInfo := &model.AuthorityContactInfo{
@@ -157,6 +158,7 @@ func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 		CertID:               certID,
 		HolderID:             holderID,
 		HolderName:           holderName,
+		Reviewer:             reviewer,
 		CertType:             certType,
 		IssueDate:            issueDate,
 		ExpiryDate:           expiryDate,

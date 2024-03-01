@@ -93,10 +93,11 @@ type Certificate struct {
 	HashFile string `json:"hashFile"` // 原文件hash
 	HashPath string `json:"hashPath"` // ipfs CID hash
 	// metadata
-	CertID               string               `json:"certID"`  // 认证机构颁发的id：机构名-证书ID(cet.org-0001)
-	HoderID              string               `json:"hoderID"` // 身份证，机构user表的id，主键
-	HoderName            string               `json:"hoderName"`
-	CertType             string               `json:"certType"`   // 类型（但也不知道有哪些类型，可以删了也可以留着吧）
+	CertID               string               `json:"certID"`   // 认证机构颁发的id：机构名-证书ID(cet.org-0001)
+	HolderID             string               `json:"holderID"` // 身份证，机构user表的id，主键
+	HolderName           string               `json:"holderName"`
+	CertType             string               `json:"certType"` // 类型（但也不知道有哪些类型，可以删了也可以留着吧）
+	Reviewer             string               `json:"reviewer"`
 	IssueDate            string               `json:"issueDate"`  // 证书上显示的颁发日期
 	ExpiryDate           string               `json:"expiryDate"` // 证书本身的过期日期
 	IssuingAuthority     string               `json:"issuingAuthority"`

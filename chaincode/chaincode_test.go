@@ -49,7 +49,7 @@ func (t *Certificate) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	if err := utils.WriteLedger(certificate, stub, model.CertificateKey, []string{certificate.CertID, certificate.HolderID, certificate.HolderName, certificate.IssuingAuthority}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
-	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID}); err != nil {
+	if err := utils.WriteLedger(certificate, stub, model.AuthorityKey, []string{certificate.IssuingAuthority, certificate.HolderID, certificate.CertID}); err != nil {
 		return shim.Error(fmt.Sprintf("%s", err))
 	}
 	return shim.Success([]byte("Init Success"))
