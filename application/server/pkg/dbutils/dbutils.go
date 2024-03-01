@@ -77,7 +77,7 @@ func InitDB(db *gorm.DB) error {
 	// }
 
 	// 自动迁移模式建表
-	err := db.AutoMigrate(&model.User{}, &model.Cert{}, &model.Admin{})
+	err := db.AutoMigrate(&model.User{}, &model.Cert{}, &model.Admin{}, &model.Notification{})
 	if err != nil {
 		return err
 	}

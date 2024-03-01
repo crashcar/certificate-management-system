@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
-	"path/filepath"
-
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -20,68 +19,11 @@ import (
 	"application/pkg/app"
 	"application/pkg/cryptoutils"
 	"application/pkg/ipfs"
+	"application/ws"
 )
 
-type uploadRequestBody struct {
-	UserID   string `form:"userID"`
-	RealName string `form:"realName"`
-	CertType string `form:"certType"`
-}
-
-// 用户上传接口
-// 1. 将文件保存在server的文件系统
-// 2. path和其他信息写入数据库
-func SaveFile(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		appG := app.Gin{C: c}
-		file, err := c.FormFile("file")
-		if err != nil {
-			appG.Response(http.StatusBadRequest, "失败", fmt.Sprintf("表单错误：%s", err.Error()))
-			return
-		}
-
-		body := new(uploadRequestBody)
-		if err := c.ShouldBindWith(body, binding.Form); err != nil {
-			appG.Response(http.StatusBadRequest, "参数解析失败", err)
-			return
-		}
-		if body.UserID == "" || body.RealName == "" || body.CertType == "" {
-			appG.Response(http.StatusBadRequest, "参数不完整", err)
-			return
-		}
-
-		// 将文件保存到server
-		now := time.Now()
-		formattedTime := now.Format("20060102150405")
-		fileExt := filepath.Ext(file.Filename)
-		newFileName := fmt.Sprintf("%s-%s%s", body.UserID, formattedTime, fileExt)
-		dst := filepath.Join("./uploads/certificates/", newFileName)
-		if err := c.SaveUploadedFile(file, dst); err != nil {
-			appG.Response(http.StatusInternalServerError, "文件保存到服务器失败", err)
-			return
-		}
-
-		// path和其他信息写入数据库
-		cert := model.Cert{
-			Path:     dst,
-			CertType: body.CertType,
-			// CreatedAt:    time.Now(),
-			UploaderID:   body.UserID,
-			UploaderName: body.RealName,
-		}
-
-		if result := db.Create(&cert); result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("文件写入数据库失败：%s", result.Error.Error()))
-			return
-		}
-
-		appG.Response(http.StatusOK, "成功", "文件上传成功")
-	}
-}
-
 type showCertListRequestBody struct {
-	AdminID    uint   `json:"adminID"`
-	ReviewType string `json:"reviewType"`
+	AdminID uint `json:"adminID"`
 }
 
 type CertListDisplay struct {
@@ -103,15 +45,25 @@ func ShowCertList(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusBadRequest, "参数解析失败", err)
 			return
 		}
-		if body.AdminID == 0 || body.ReviewType == "" {
-			appG.Response(http.StatusBadRequest, "参数有误", err)
+		log.Print(body)
+		if body.AdminID == 0 {
+			appG.Response(http.StatusBadRequest, "参数有误", "adminID为0")
 			return
 		}
 
+		// 查询adminID对应的reviewType
+		var admin model.Admin
+		result := db.First(&admin, body.AdminID)
+		if result.Error != nil {
+			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
+			return
+		}
+		reviewType := admin.ReviewType
+
 		// 从数据库查询certtype为body.type类型的项
 		var certs []model.Cert
-		if err := db.Where("cert_type = ?", body.ReviewType).Order("created_at asc").Find(&certs).Error; err != nil {
-			c.JSON(500, gin.H{"error": "数据库查询错误"})
+		if err := db.Where("cert_type = ?", reviewType).Order("created_at asc").Find(&certs).Error; err != nil {
+			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
 		}
 
@@ -154,7 +106,7 @@ func ShowProcessedCert(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		if body.ID == 0 {
-			appG.Response(http.StatusBadRequest, "参数错误", err)
+			appG.Response(http.StatusBadRequest, "参数错误", "db证书ID有误")
 			return
 		}
 
@@ -162,7 +114,7 @@ func ShowProcessedCert(db *gorm.DB) gin.HandlerFunc {
 		var cert model.Cert
 		result := db.First(&cert, body.ID)
 		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", err)
+			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
 		}
 
@@ -180,7 +132,8 @@ func ShowProcessedCert(db *gorm.DB) gin.HandlerFunc {
 }
 
 type reviewApprovedRequestBody struct {
-	ID               uint   `json:"id"`
+	CertDBID         uint   `json:"certDBID"`
+	AdminID          uint   `json:"adminID"`
 	IssuingAuthority string `json:"issuingAuthority"` // 测试不同机构
 }
 
@@ -209,14 +162,16 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusBadRequest, "参数解析失败", err)
 			return
 		}
-		if body.ID == 0 || body.IssuingAuthority == "" {
-			appG.Response(http.StatusBadRequest, "失败", "certs表项ID为0或issuingAuthority为空字符串")
+		if body.CertDBID == 0 || body.AdminID == 0 || body.IssuingAuthority == "" {
+			appG.Response(http.StatusBadRequest, "失败", "certs表项ID为0或adminID为0或issuingAuthority为空字符串")
 			return
 		}
 
 		// 根据 body.ID 从数据库取出对应的项
 		var cert model.Cert
-		result := db.First(&cert, body.ID)
+		certDbId := body.CertDBID
+		adminId := body.AdminID
+		result := db.First(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
@@ -232,11 +187,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 
 		// 加密上传ipfs
 		ipfsnode := "certman-ipfs:5001"
-		cid, err := ipfs.UploadFileToIPFS(appG, cert.Path, ipfsnode)
-		if err != nil {
-			appG.Response(http.StatusInternalServerError, "上传至IPFS时出错", err)
-			return
-		}
+		cid := ipfs.UploadFileToIPFS(appG, cert.Path, ipfsnode)
 
 		// 删除文件系统的文件以及数据库记录
 		err = os.Remove(cert.Path)
@@ -244,7 +195,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusInternalServerError, "文件系统删除文件错误", err)
 			return
 		}
-		result = db.Delete(&cert, body.ID)
+		result = db.Delete(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", err)
 			return
@@ -260,6 +211,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 
 		// 制作上链数据
 		issuingAuthority := body.IssuingAuthority // 测试不同机构
+		adminIdStr := strconv.FormatUint(uint64(adminId), 10)
 		var bodyBytes [][]byte
 		bodyBytes = append(bodyBytes, []byte(hashString))
 		bodyBytes = append(bodyBytes, []byte(cid))
@@ -267,6 +219,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		bodyBytes = append(bodyBytes, []byte(holderID))
 		bodyBytes = append(bodyBytes, []byte(holderName))
 		bodyBytes = append(bodyBytes, []byte(certType))
+		bodyBytes = append(bodyBytes, []byte(adminIdStr))
 		bodyBytes = append(bodyBytes, []byte(currentDate))
 		bodyBytes = append(bodyBytes, []byte(expiryDate))
 		bodyBytes = append(bodyBytes, []byte(issuingAuthority))
@@ -277,23 +230,34 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		//调用智能合约数据上链
 		resp, err := bc.ChannelExecute("uploadCertOrg", bodyBytes)
 		if err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", err.Error())
+			appG.Response(http.StatusInternalServerError, "数据上链失败", err.Error())
 			return
 		}
 		var data map[string]interface{}
 		if err = json.Unmarshal(bytes.NewBuffer(resp.Payload).Bytes(), &data); err != nil {
-			appG.Response(http.StatusInternalServerError, "失败", err.Error())
+			appG.Response(http.StatusInternalServerError, "账本数据unmarshal失败", err.Error())
 			return
 		}
-		appG.Response(http.StatusOK, "成功", data)
 
 		// 通知用户
-		// TODO
+		notification := model.Notification{
+			UserID:       holderID,
+			AdminID:      adminId,
+			Content:      "证书审核通过",
+			IsRead:       false,
+			CreatedAt:    time.Now(),
+			DenialReason: nil,
+		}
+		ws.WriteDBAndNotifyUser(db, notification, appG)
+
+		appG.Response(http.StatusOK, "成功", data)
 	}
 }
 
 type reviewDenialRequestBody struct {
-	ID uint `json:"id"`
+	CertDBID     uint   `json:"certDbID"`
+	AdminID      uint   `json:"adminID"`
+	DenialReason string `json:"denialReason"`
 }
 
 // 管理员审核接口
@@ -309,14 +273,16 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusBadRequest, "参数解析失败", err)
 			return
 		}
-		if body.ID == 0 {
-			appG.Response(http.StatusBadRequest, "certs表项ID不能为0", err)
+		if body.CertDBID == 0 || body.AdminID == 0 || body.DenialReason == "" {
+			appG.Response(http.StatusBadRequest, "certDbId或adminId为0, 或拒绝理由为空", err)
 			return
 		}
 
 		// 根据 body.ID 从数据库取出对应的项
 		var cert model.Cert
-		result := db.First(&cert, body.ID)
+		certDbId := body.CertDBID
+		adminId := body.AdminID
+		result := db.First(&cert, certDbId)
 		if result.Error != nil {
 			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
 			return
@@ -328,11 +294,23 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 			appG.Response(http.StatusInternalServerError, "文件系统删除文件错误", err)
 			return
 		}
-		result = db.Delete(&cert, body.ID)
+		result = db.Delete(&cert, certDbId)
 		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", err)
+			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", result.Error.Error())
 			return
 		}
+
+		// 通知用户
+		denialReason := body.DenialReason
+		notification := model.Notification{
+			UserID:       cert.UploaderID,
+			AdminID:      adminId,
+			Content:      "证书审核未通过",
+			IsRead:       false,
+			CreatedAt:    time.Now(),
+			DenialReason: &denialReason,
+		}
+		ws.WriteDBAndNotifyUser(db, notification, appG)
 
 		appG.Response(http.StatusOK, "成功", "证书审核不通过，成功删除证书数据")
 	}

@@ -95,7 +95,7 @@ func UserLogin(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		appG.Response(http.StatusOK, "Login_Success", "用户登录成功")
+		appG.Response(http.StatusOK, "Login_Success", "user")
 	}
 }
 
@@ -178,6 +178,6 @@ func AdminLogin(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		appG.Response(http.StatusOK, "Login_Success", "管理员登录成功")
+		appG.Response(http.StatusOK, "Login_Success", "admin")
 	}
 }

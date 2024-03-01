@@ -5,9 +5,10 @@ import (
 	"chaincode/pkg/utils"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"time"
 )
 
 // 管理系统：单次查询调用接口，证书作为查询主键
@@ -108,8 +109,8 @@ func QueryCertByAuthorityLists(stub shim.ChaincodeStubInterface, args []string) 
 
 // org：-管理员- 上传证书
 func UploadCertOrg(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 12 {
-		return shim.Error(fmt.Sprintf("参数个数不满足, 输入%d, 应为12\n", len(args)))
+	if len(args) != 13 {
+		return shim.Error(fmt.Sprintf("参数个数不满足, 输入%d, 应为13\n", len(args)))
 	}
 
 	//检测参数是否为空
