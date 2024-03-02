@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -21,115 +20,6 @@ import (
 	"application/pkg/ipfs"
 	"application/ws"
 )
-
-type showCertListRequestBody struct {
-	AdminID uint `json:"adminID"`
-}
-
-type CertListDisplay struct {
-	ID           uint      `json:"id"`
-	UploaderID   string    `json:"uploaderId"`
-	UploaderName string    `json:"uploaderName"`
-	CreatedAt    time.Time `json:"createdAt"`
-}
-
-// 管理员审核接口
-// 显示未处理证书列表
-func ShowCertList(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		appG := app.Gin{C: c}
-
-		body := new(showCertListRequestBody)
-		err := c.ShouldBind(body)
-		if err != nil {
-			appG.Response(http.StatusBadRequest, "参数解析失败", err)
-			return
-		}
-		log.Print(body)
-		if body.AdminID == 0 {
-			appG.Response(http.StatusBadRequest, "参数有误", "adminID为0")
-			return
-		}
-
-		// 查询adminID对应的reviewType
-		var admin model.Admin
-		result := db.First(&admin, body.AdminID)
-		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
-			return
-		}
-		reviewType := admin.ReviewType
-
-		// 从数据库查询certtype为body.type类型的项
-		var certs []model.Cert
-		if err := db.Where("cert_type = ?", reviewType).Order("created_at asc").Find(&certs).Error; err != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
-			return
-		}
-
-		// 生成用于前端展示的信息
-		var displayData []CertListDisplay
-		for _, cert := range certs {
-			displayData = append(displayData, CertListDisplay{
-				ID:           cert.ID,
-				UploaderID:   cert.UploaderID,
-				UploaderName: cert.UploaderName,
-				CreatedAt:    cert.CreatedAt,
-			})
-		}
-
-		appG.Response(http.StatusOK, "成功", displayData)
-	}
-}
-
-type showCertRequestBody struct {
-	ID uint `json:"id"`
-}
-
-type CertDisplay struct {
-	UploaderID   string    `json:"uploaderId"`
-	UploaderName string    `json:"uploaderName"`
-	CreatedAt    time.Time `json:"createdAt"`
-	ImageURL     string    `json:"imageURL"`
-}
-
-// 管理员审核接口
-// 点击列表中的一项，显示证书文件
-func ShowProcessedCert(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		appG := app.Gin{C: c}
-
-		body := new(showCertRequestBody)
-		err := c.ShouldBind(body)
-		if err != nil {
-			appG.Response(http.StatusBadRequest, "参数解析失败", err)
-			return
-		}
-		if body.ID == 0 {
-			appG.Response(http.StatusBadRequest, "参数错误", "db证书ID有误")
-			return
-		}
-
-		// 从数据库查询
-		var cert model.Cert
-		result := db.First(&cert, body.ID)
-		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
-			return
-		}
-
-		// 生成用于前端展示的信息
-		url := "http://localhost:8000/" + cert.Path
-		displayData := CertDisplay{
-			UploaderID:   cert.UploaderID,
-			UploaderName: cert.UploaderName,
-			CreatedAt:    cert.CreatedAt,
-			ImageURL:     url,
-		}
-
-		appG.Response(http.StatusOK, "成功", displayData)
-	}
-}
 
 type reviewApprovedRequestBody struct {
 	CertDBID         uint   `json:"certDBID"`
@@ -168,7 +58,7 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// 根据 body.ID 从数据库取出对应的项
-		var cert model.Cert
+		var cert model.Application
 		certDbId := body.CertDBID
 		adminId := body.AdminID
 		result := db.First(&cert, certDbId)
@@ -183,21 +73,16 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 		expiryDate := time.Now().AddDate(10, 0, 0).Format("2006-01-02")
 
 		// 获取原文件的hash
-		hashString := cryptoutils.HashFile(cert.Path, appG)
+		hashString := cryptoutils.HashFile(*cert.Path, appG)
 
 		// 加密上传ipfs
 		ipfsnode := "certman-ipfs:5001"
-		cid := ipfs.UploadFileToIPFS(appG, cert.Path, ipfsnode)
+		cid := ipfs.UploadFileToIPFS(appG, *cert.Path, ipfsnode)
 
-		// 删除文件系统的文件以及数据库记录
-		err = os.Remove(cert.Path)
+		// 删除文件系统的文件
+		err = os.Remove(*cert.Path)
 		if err != nil {
 			appG.Response(http.StatusInternalServerError, "文件系统删除文件错误", err)
-			return
-		}
-		result = db.Delete(&cert, certDbId)
-		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", err)
 			return
 		}
 
@@ -208,6 +93,20 @@ func ApproveCert(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		CertID := "cet.com-" + newID.String()
+
+		// 更新数据库存储：path置空，存储certID
+		result = db.Model(&cert).Where("id = ?", certDbId).Updates(map[string]interface{}{
+			"Path":        nil,
+			"IsProcessed": true,
+			"ProcessedAt": time.Now(),
+			"IsApproved":  true,
+			"CertID":      &CertID,
+		})
+
+		if result.Error != nil {
+			appG.Response(http.StatusInternalServerError, "数据库表项更新出错", result.Error.Error())
+			return
+		}
 
 		// 制作上链数据
 		issuingAuthority := body.IssuingAuthority // 测试不同机构
@@ -278,30 +177,23 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// 根据 body.ID 从数据库取出对应的项
-		var cert model.Cert
+		var cert model.Application
 		certDbId := body.CertDBID
 		adminId := body.AdminID
-		result := db.First(&cert, certDbId)
-		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库查询错误", result.Error.Error())
-			return
-		}
 
-		// 删除文件系统的文件以及数据库记录
-		err = os.Remove(cert.Path)
-		if err != nil {
-			appG.Response(http.StatusInternalServerError, "文件系统删除文件错误", err)
-			return
-		}
-		result = db.Delete(&cert, certDbId)
+		// 数据库表项更新(审核不通过文件系统文件不删除)
+		denialReason := body.DenialReason
+		result := db.Model(&cert).Where("id = ?", certDbId).Updates(model.Application{
+			IsProcessed:  true,
+			ProcessedAt:  time.Now(),
+			DenialReason: &denialReason,
+		})
 		if result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "数据库删除记录错误", result.Error.Error())
+			appG.Response(http.StatusInternalServerError, "数据库表项更新错误", result.Error.Error())
 			return
 		}
 
 		// 通知用户
-		denialReason := body.DenialReason
 		notification := model.Notification{
 			UserID:       cert.UploaderID,
 			AdminID:      adminId,
@@ -312,7 +204,7 @@ func DenialCert(db *gorm.DB) gin.HandlerFunc {
 		}
 		ws.WriteDBAndNotifyUser(db, notification, appG)
 
-		appG.Response(http.StatusOK, "成功", "证书审核不通过，成功删除证书数据")
+		appG.Response(http.StatusOK, "成功", "证书审核不通过")
 	}
 }
 

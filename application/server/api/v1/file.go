@@ -69,19 +69,21 @@ func SaveFile(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// path和其他信息写入数据库
-		cert := model.Cert{
-			Path:         dst,
+		application := model.Application{
+			Path:         &dst,
 			CertType:     body.CertType,
 			UploaderID:   body.UserID,
 			UploaderName: body.RealName,
+			CertID:       nil,
 		}
 
-		if result := db.Create(&cert); result.Error != nil {
-			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("文件写入数据库失败：%s", result.Error.Error()))
+		if result := db.Create(&application); result.Error != nil {
+			appG.Response(http.StatusInternalServerError, "失败", fmt.Sprintf("数据库写入失败：%s", result.Error.Error()))
 			return
 		}
 
-		appG.Response(http.StatusOK, "成功", "文件上传成功")
+		// 返回申请编号
+		appG.Response(http.StatusOK, "成功", application.ID)
 	}
 }
 

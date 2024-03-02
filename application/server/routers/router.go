@@ -47,14 +47,18 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 		apiV1.POST("/downloadCertificate", v1.DownloadCertificate)
 
 		// review - 管理员审查接口
-		// 1. 获取所有待审查证书列表
-		apiV1.POST("/showCertList", v1.ShowCertList(db))
-		// 2. 获取某个证书详情含图片（单击列表中的证书表项）
-		apiV1.POST("/showProcessedCert", v1.ShowProcessedCert(db))
-		// 3. 审查通过证书
+		// 1. 审查通过证书
 		apiV1.POST("/approveCert", v1.ApproveCert(db))
-		// 4. 审查不通过证书
+		// 2. 审查不通过证书
 		apiV1.POST("/denialCert", v1.DenialCert(db))
+
+		// application - 查看申请接口
+		// 1. 查看申请列表
+		apiV1.POST("/showApplicationList", v1.ShowApplicationList(db))
+		// 2. 查看单个申请详情
+		apiV1.POST("/applicationDetail", v1.ApplicationDetail(db))
+		// 3. 删除申请或者删除记录（用户使用）
+		apiV1.POST("/deleteRecord", v1.DeleteRecord(db))
 
 		// query - 查看链上证书接口
 		// 1. 查看用户在所有机构的所有证书（没有用上）
