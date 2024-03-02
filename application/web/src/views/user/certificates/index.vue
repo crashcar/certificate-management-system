@@ -63,23 +63,27 @@ export default {
     fresh_my_certificates() {
 
       console.log('query_my_certificates')
-
       // 这里可以添加查询证书的逻辑
       const user_id=window.localStorage.getItem('user_id')
       const queryCertData = {
-        id: user_id
+        holderID: user_id,
+        issuingAuthority: "CET",
       };
 
       // 发送查询请求
       query_user_certificates(queryCertData).then(res => {
-        console.log(res);
+        console.log("fresh_my_certificates(): POST 请求");
+        console.log(res)
         // 将返回的证书数据赋值给表格数据
-        this.tableData = res.data;
+        if (res.data != null) {
+          console.log("fresh_my_certificates(): 该用户在本机构存在证书")
+          this.tableData = res.data;
+        }else{
+          console.log("fresh_my_certificates(): 该用户在本机构不存在证书")
+        }
       }).catch(error => {
         console.log('查询用户证书信息错误:', error);
       });
-
-
     },
     downloadCertificate(certificateId) {
       console.log("certificateId: " + certificateId + "")

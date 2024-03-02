@@ -35,12 +35,6 @@ const routes = [
         meta: { title: '证书申请' }
       },
       {
-        path: 'other-certs',
-        component: () => import('@/views/user/otherCerts/index'),
-        name: 'OtherCerts',
-        meta: { title: '其他机构证书' }
-      },
-      {
         path: 'profile',
         component: () => import('@/views/user/profile/index'),
         name: 'Profile',
@@ -49,10 +43,25 @@ const routes = [
     ]
   },
 
-  {    path: '/admin',
+  {
+    path: '/admin',
+    redirect: 'admin/instituteCerts',
     component: () => import('@/views/admin/layout/index'),
     meta: { role: 'admin' },
-    hidden: true
+    children: [
+        {
+          path: 'instituteCerts',
+          component: () => import('@/views/admin/instituteCerts/index'),
+          name: 'instituteCerts',
+          meta: { title: '机构证书管理' }
+        },
+        {
+          path: 'checkCerts',
+          component: () => import('@/views/admin/checkCerts/index'),
+          name: 'checkCerts',
+          meta: { title: '机构证书审查' }
+        },
+    ]
   },
   {
     path: '/404',
@@ -71,11 +80,12 @@ router.beforeEach((to, from, next) => {
   const userRole = localStorage.getItem('user_role')
   if (!userRole && to.path !== '/login' && to.path !== '/register') {
     next('/login')
-  } else if (to.meta.role && to.meta.role !== userRole) {
+  } else if (to.meta && to.meta.role && to.meta.role !== userRole) {
     next('/404')
   } else {
     next()
   }
 })
+
 
 export default router

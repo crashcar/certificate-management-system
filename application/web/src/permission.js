@@ -39,12 +39,14 @@ router.beforeEach(async (to, from, next) => {
     } else {
       // 对于其他路径，可以添加更多的角色检查和重定向逻辑
       next() // 直接放行
+      NProgress.done()
     }
   } else {
     // 未登录状态的处理逻辑
-    console.log("未登录: ")
+    console.log("permision.js: user/admin未登录")
     if (whiteList.indexOf(to.path) !== -1) {
       next() // 白名单路径放行
+      NProgress.done()
     } else {
       next(`/login`) // 重定向到登录页
       NProgress.done()

@@ -2,13 +2,13 @@
   <div>
     <div class="toolbar">
       <div class="toolbar-right">
-        <el-button type="primary" @click="showApplyDialog" plain>申请</el-button>
+        <el-button type="primary" @click="showApplyDialog" plain>证书上链申请</el-button>
       </div>
     </div>
     <!-- 表格部分 -->
     <el-table
         :data="tableData"
-        style="width: 100%; margin-top: 20px;"
+        style="width: 100%; margin-left: 10px; margin-right: 10px;"
         :highlight-current-row="true">
       <el-table-column
           prop="name"
@@ -33,11 +33,15 @@
     <!-- 申请对话框 -->
     <el-dialog :visible.sync="dialogVisible" title="申请证书" @close="handleCloseDialog">
       <el-form ref="applyForm" label-width="100px">
-        <el-form-item label="证书颁发机构编号">
-          <el-input v-model="institutionId"></el-input>
-        </el-form-item>
-        <el-form-item label="证书编号">
-          <el-input v-model="certificateId"></el-input>
+        <el-form-item label="证书类型">
+          <el-select v-model="cetType" placeholder="请选择证书类型">
+            <el-option
+                v-for="type in CET_TYPE"
+                :key="type"
+                :label="type"
+                :value="type">
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="上传证书">
           <el-upload
@@ -65,6 +69,7 @@
 
 <script>
 import { user_apply_certificate } from "@/api/userCert";
+import {getReviewTypes} from "@/api/admin";
 
 export default {
   name: 'My_Certificates',
@@ -72,9 +77,17 @@ export default {
     return {
       tableData: [],
       dialogVisible: false,
-      institutionId: '',
-      certificateId: '',
+      CET_TYPE: [],
+      cetType: "", // 选中的证书类型
       fileList: []
+    }
+  },
+  created() {
+    const storedCETType = JSON.parse(window.localStorage.getItem('CET_TYPE'));
+    if (storedCETType != null) {
+      this.CET_TYPE = storedCETType;
+    }else{
+      this.load_CertTypes();
     }
   },
   watch: {
@@ -83,6 +96,24 @@ export default {
     }
   },
   methods: {
+    load_CertTypes() {
+      getReviewTypes()
+          .then(res => {
+            console.log("apply/index(): 获取当前机构的所有证书类型: ")
+            console.log(res);
+            //存储到本地
+            window.localStorage.setItem('CET_TYPE', JSON.stringify(res.data));
+            this.CET_TYPE=res.data;
+          }).catch(error => {
+        console.log('加载证书类型错误:', error);
+      });
+    },
+
+    // 展示证书审核状态
+    fresh_check_certificates(){
+
+
+    },
     showApplyDialog() {
       this.dialogVisible = true;
     },
@@ -92,41 +123,41 @@ export default {
       this.fileList = fileList;
     },
     confirmApply() {
-      const institutionId = this.institutionId;
-      const certificateId = this.certificateId;
+
+      const user_id = window.localStorage.getItem('user_id');
+      // const user_name=window.localStorage.getItem('user_name');
+      const user_name="hua";
+      const certType = this.cetType; // 使用选中的证书类型
       const file = this.fileList.length > 0 ? this.fileList[0].raw : null;
 
-      console.log(institutionId)
-      console.log(certificateId)
-      console.log(file)
-
-      if (!institutionId || !certificateId || !file) {
+      if (!certType||!file) {
         // 检查是否有未填写的信息或者未上传的文件
-        this.$message.error('请填写完整信息并上传文件');
+        this.$message.error('请检查选择的证书类型和是否选择了上传的文件');
         return;
       }
-
       console.log('确认申请');
       this.dialogVisible = false;
 
-      user_apply_certificate(institutionId, certificateId, file)
+      user_apply_certificate(user_id,user_name,certType, file)
           .then(response => {
+
             console.log(response);
-          })
-          .catch(error => {
+
+          }).catch(error => {
+            console.log();
             console.error('申请证书错误:', error);
           });
 
       // 申请成功后清空表单数据
       this.clearFormData();
+      //刷新待审核列表
+      this.fresh_check_certificates();
     },
     handleRemove(file, fileList) {
       this.fileList = fileList;
     },
     clearFormData() {
       this.$refs.applyForm.resetFields();
-      this.institutionId = '';
-      this.certificateId = '';
       this.fileList = [];
     },
     handleCloseDialog() {

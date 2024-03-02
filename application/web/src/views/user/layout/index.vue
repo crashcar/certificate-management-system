@@ -26,11 +26,7 @@
         </el-menu-item>
         <el-menu-item index="/user/apply">
           <i class="el-icon-edit"></i>
-          <span slot="title" v-show="!isCollapse">证书申请</span>
-        </el-menu-item>
-        <el-menu-item index="/user/other-certs">
-          <i class="el-icon-reading"></i>
-          <span slot="title" v-show="!isCollapse">其他机构证书</span>
+          <span slot="title" v-show="!isCollapse">证书上链申请</span>
         </el-menu-item>
         <el-menu-item index="/user/profile">
           <i class="el-icon-user"></i>

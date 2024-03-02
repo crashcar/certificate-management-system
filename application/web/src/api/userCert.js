@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 用户登录
 export function query_user_certificates(data) {
     return request({
-        url: '/queryUserCertificate',
+        url: '/queryCertByUserOrg',
         method: 'post',
         data
     })
@@ -22,14 +22,15 @@ export function user_download_certificate(userId, certificateId) {
     })
 }
 
-export function user_apply_certificate(institutionId, certificateId, file) {
+export function user_apply_certificate(userID, realName, certType, file) {
     const formData = new FormData();
-    formData.append('institutionId', institutionId);
-    formData.append('certificateId', certificateId);
+    formData.append('userID', userID);
+    formData.append("realName", realName);
+    formData.append('certType', certType);
     formData.append('file', file);
 
     return request({
-        url: '/userApplyCertificate',
+        url: '/upload',
         method: 'post',
         data: formData,
         headers: {

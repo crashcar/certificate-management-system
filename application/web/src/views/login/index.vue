@@ -6,14 +6,21 @@
       </div>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
-          <input type="text" class="form-control" v-model="id" placeholder="请输入您的用户ID">
+          <select v-model="loginType" class="form-control">
+            <option value="user">普通用户登录</option>
+            <option value="admin">管理员登录</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input type="text" class="form-control" v-model="id" placeholder="请输入您的ID">
         </div>
         <div class="form-group">
           <input type="password" class="form-control" v-model="password" placeholder="请输入您的密码">
         </div>
-        <div class="form-actions">
 
-          <button type="button" class="btn-register" @click="GoToRegister">注册用户</button>
+        <div class="form-actions">
+          <button type="button" class="btn-register" @click="GoToRegister">注册</button>
           <button type="submit" class="btn-login">登录</button>
         </div>
         <!-- 忘记密码链接 -->
@@ -25,65 +32,130 @@
   </div>
 </template>
 
-
-
 <script>
-import { userLogin } from '@/api/userInfo'
+import {adminLogin, userLogin} from '@/api/userInfo'
+import { Message } from 'element-ui';
+import {getReviewTypes} from "@/api/admin";
 
 export default {
   name: 'Login',
   data() {
     return {
-      loading: false,
-
       id: "",
       password:"",
+      loginType: "user",
+      CERT_TYPE:[]
     }
   },
   watch: {
-    $route: {
-      immediate: true
-    }
+
   },
   created() {
-   
+    // 在组件创建时立即执行逻辑
+    const hasToken = window.localStorage.getItem('user_id')
+    const role = window.localStorage.getItem('user_role')
+
+    if (hasToken !== null && role !== null) {
+      console.log("已登录: {user_id: "+hasToken+ " , user_role: "+ role+ " }")
+      if (this.$route.path === '/login') {
+        // 如果已登录且在访问登录页面，则根据角色重定向
+        this.$router.push({ path: '/' + role })
+      } else {
+        // 对于其他路径，可以添加更多的角色检查和重定向逻辑
+      }
+    } else {
+      // 未登录状态的处理逻辑
+      console.log("未登录: ")
+      if (!['/login', '/register', '/404'].includes(this.$route.path)) {
+        this.$router.push(`/login`) // 重定向到登录页
+      }
+    }
+
+
+    // 调用获取证书类型的方法
+    this.loadCertTypes();
+
   },
   methods: {
+
+    loadCertTypes() {
+      // 调用后端获取证书类型的方法
+      getReviewTypes()
+          .then(res => {
+            console.log("获取当前机构的所有证书类型: ")
+            console.log(res);
+
+            // 更新全局变量CERT_TYPE的值
+            this.CERT_TYPE.splice(0, this.CERT_TYPE.length, ...res.data);
+
+            //存储到本地
+            window.localStorage.setItem('CET_TYPE', JSON.stringify(res.data));
+            // const storedCETType = JSON.parse(window.localStorage.getItem('CET_TYPE'));
+
+          }).catch(error => {
+            console.log('加载证书类型错误:', error);
+          });
+    },
+
     handleLogin() {
-      this.loading = true; // 开始加载
       const loginData = {
         id: this.id,
         password: this.password,
+        // type: this.loginType // 添加登录类型
       };
       console.log(loginData)
-      userLogin(loginData).then(res=> { // 调用登录API
-        this.loading = false; // 停止加载
-        if (res.msg === 'Login_Success') { // 登录成功
-          console.log("登录成功, 跳转主页")
 
-          const user_id=res.data.user_id;
-          const user_role=res.data.user_role;
+      const user_id=this.id;
+      const user_role=this.loginType;
 
-          window.localStorage.setItem('user_id', user_id);
-          window.localStorage.setItem('user_role', user_role);
+      if (this.loginType === 'user') {
+        userLogin(loginData).then(res=> { // 调用用户登录API
+          if (res.msg === 'Login_Success') { // 登录成功
+            console.log("登录成功, 跳转主页")
 
-          // 根据角色跳转到相应的页面
-          if (user_role === 'admin') {
-            this.$router.push({ path: '/admin' }); // 为管理员跳转到管理员主页
-          } else if (user_role === 'user') {
+            window.localStorage.setItem('user_id', user_id);
+            window.localStorage.setItem('user_role', user_role);
+
+
             this.$router.push({ path: '/user' }); // 为普通用户跳转到用户主页
-          } else {
-            // 可以处理其他角色或默认跳转逻辑
-            this.$router.push({ path: '/' });
+
+          } else if(res.msg === 'Login_Failed'){
+            console.log("登录失败, 重新登录")
+            Message({
+              message: res.data,
+              type: 'warning',
+              duration: 4000 // 设置消息显示时间
+            });
+
+            setTimeout(() => {
+              this.id=""
+              this.password=""
+            }, 4000);
           }
-        } else {
-          // 这里可以处理登录失败的逻辑，比如显示错误消息
-          console.error('登录失败:', res.data);
-        }
-      }).catch(error => {
-        this.loading = false; // 出现错误，停止加载
-        console.log('登录错误:', error);
-      });
+        }).catch(error => {
+          console.log('登录错误:', error);
+        });
+
+      }else if (this.loginType === 'admin') {
+
+        adminLogin(loginData).then(res=> { // 调用管理员登录API
+              if (res.msg === 'Login_Success') { // 登录成功
+
+                window.localStorage.setItem('user_id', user_id);
+                window.localStorage.setItem('user_role', user_role);
+
+                this.$router.push({ path: '/admin' }); // 为管理员跳转到管理员主页
+              }else {
+                // 这里可以处理登录失败的逻辑，比如显示错误消息
+                console.error('登录失败:', res.data);
+              }
+        }).catch(error => {
+          console.log('登录错误:', error);
+        });
+
+      }
+
+
     },
 
     GoToRegister(){
@@ -128,7 +200,7 @@ $blue:#007bff;
   .form-group {
     margin-bottom: 20px;
 
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       border: 1px solid $dark_gray;
