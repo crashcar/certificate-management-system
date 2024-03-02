@@ -25,14 +25,18 @@ type Admin struct {
 }
 
 // server端暂存用户证书的结构体，数据库表格
-type Cert struct {
+type Application struct {
 	ID           uint      `gorm:"primary_key"` // 主键
-	Path         string    `gorm:"not null"`    // 证书存储url
-	CertType     string    `gorm:"not null"`    // 证书类型，需要对应类型的管理员进行处理
+	Path         *string   // 证书存储url
+	CertType     string    `gorm:"not null"` // 证书类型，需要对应类型的管理员进行处理
 	CreatedAt    time.Time // 证书上传时间，按照时间升序排列
 	UploaderID   string    `gorm:"not null"`      // 上传者ID
 	UploaderName string    `gorm:"not null"`      // 上传者姓名
-	IsProcessed  bool      `gorm:"default:false"` //是否处理，true的定时删除
+	IsProcessed  bool      `gorm:"default:false"` // 是否处理，true的定时删除
+	ProcessedAt  time.Time // 审核时间
+	IsApproved   bool      `gorm:"default:false"` // 是否审查通过，默认为f
+	CertID       *string   // 若审查通过，则分配certID，若未通过，则没有certID
+	DenialReason *string   // 审核未通过保存未通过的理由
 }
 
 type AuthorityContactInfo struct {
