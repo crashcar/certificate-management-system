@@ -61,6 +61,12 @@ const routes = [
           name: 'checkCerts',
           meta: { title: '机构证书审查' }
         },
+      {
+        path: 'profile',
+        component: () => import('@/views/admin/profile/index'),
+        name: 'Profile',
+        meta: { title: '管理员个人信息页面' }
+      }
     ]
   },
   {

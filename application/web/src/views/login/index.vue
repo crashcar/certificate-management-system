@@ -138,6 +138,9 @@ export default {
 
       }else if (this.loginType === 'admin') {
 
+        loginData.id= parseInt(loginData.id)
+        console.log(loginData)
+
         adminLogin(loginData).then(res=> { // 调用管理员登录API
               if (res.msg === 'Login_Success') { // 登录成功
 

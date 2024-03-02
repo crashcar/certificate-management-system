@@ -30,11 +30,16 @@
           <!-- 管理员注册的输入框 -->
           <!-- 假设管理员注册只需要密码和选择机构类型 -->
           <div class="form-group">
-            <select v-model="organizationType" class="form-control">
-              <option value="CET">CET</option>
-              <option value="Other">Other</option>
-            </select>
+            <el-select v-model="certType" class="form-control admin-select" placeholder="请选择证书类型">
+              <el-option
+                  v-for="type in CERT_TYPE"
+                  :key="type"
+                  :label="type"
+                  :value="type">
+              </el-option>
+            </el-select>
           </div>
+
           <div class="form-group">
             <input type="password" class="form-control" v-model="password" placeholder="请输入管理员密码">
           </div>
@@ -49,8 +54,9 @@
 </template>
 
 <script>
-import { userRegister } from '@/api/userInfo'
+import {adminRegister, userRegister} from '@/api/userInfo'
 import { Message } from 'element-ui';
+import {getReviewTypes} from "@/api/admin";
 
 export default {
   name: 'Register',
@@ -61,11 +67,43 @@ export default {
       realname: '',
       email: '',
       userType: 'user', // 默认选择普通用户注册
-      organizationType: 'CET' // 管理员注册时的机构类型，默认展示CET
+      certType:'',
+      CERT_TYPE: [] // 管理员注册时的机构类型，默认展示CET
+    }
+  },
+  created() {
+    const storedCETType = JSON.parse(window.localStorage.getItem('CET_TYPE'));
+    if (storedCETType != null) {
+      console.log("register: 管理员可注册证书类型已存在")
+      this.CERT_TYPE = storedCETType;
+    }else{
+      console.log("register: 查询管理员可注册证书类型")
+      this.loadCertTypes_register();
     }
   },
   methods: {
+    loadCertTypes_register() {
+      getReviewTypes()
+          .then(res => {
+            console.log("register/index(): 获取当前机构的所有证书类型: ")
+            console.log(res);
+            //存储到本地
+            window.localStorage.setItem('CET_TYPE', JSON.stringify(res.data));
+            this.CERT_TYPE=res.data;
+          }).catch(error => {
+        console.log('加载证书类型错误:', error);
+      });
+    },
     handleRegister() {
+
+      if(this.userType==="user"){
+        this.handUserRegister();
+      }else if(this.userType==="admin"){
+        this.handleAdminRegister();
+      }
+
+    },
+    handUserRegister() {
       const registerData = {
         id: this.id,
         realname: this.realname,
@@ -92,6 +130,43 @@ export default {
         console.error('register/index.vue: 注册错误:', error);
       });
     },
+
+    handleAdminRegister() {
+      const registerData = {
+        reviewType: this.certType,
+        password: this.password,
+      };
+
+      if(!this.certType || !this.password){
+        console.log("register/index.vue: 注册失败，请填写完整信息");
+        Message({
+          message: '请填写完整信息',
+          type: 'warning',
+          duration: 3000
+        });
+      }
+
+      adminRegister(registerData).then(
+          res => {
+            if(res.msg==="Admin_Register_Success"){
+              console.log("register/index.vue: admin注册成功");
+              console.log(res);
+              Message({
+                message: '管理员id为: ' + res.data,
+                type: 'warning',
+                duration: 5000
+              });
+              setTimeout(() => {
+                this.$router.push('/login');
+              }, 5000);
+            }
+          }
+      ).catch(error=>{
+        console.log("register/index.vue: admin注册失败");
+        console.log(error);
+      });
+    },
+
     handleUserTypeChange() {
       // 切换用户类型时清空已有的数据
       this.id = '';
@@ -99,7 +174,7 @@ export default {
       this.realname = '';
       this.email = '';
       if (this.userType === 'admin') {
-        this.organizationType = 'CET'; // 更新为默认值CET
+        this.certType = '';
       }
     },
 
@@ -151,6 +226,23 @@ $blue:#007bff;
       border: 1px solid $dark_gray;
       border-radius: 4px;
       box-sizing: border-box; // Ensure padding does not affect the final size
+    }
+
+    .el-select.admin-select {
+      width: 100%;
+      .el-input__inner {
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid $dark_gray;
+      }
+
+      .el-input__suffix .el-input__suffix-inner {
+        color: $dark_gray;
+      }
+    }
+
+    .el-option.selected {
+      color: $text_color;
     }
   }
 
