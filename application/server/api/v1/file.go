@@ -6,6 +6,7 @@ import (
 	"application/pkg/ipfs"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -51,7 +52,17 @@ func SaveFile(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		newFileName := fmt.Sprintf("%s-%s%s", body.UserID, formattedTime, fileExt)
-		dst := filepath.Join("./uploads/certificates", newFileName)
+		directory := "./uploads/certificates"
+		dst := filepath.Join(directory, newFileName)
+		if _, err := os.Stat(directory); os.IsNotExist(err) {
+			// 如果目录不存在，则创建目录
+			err := os.MkdirAll(directory, 0777)
+			if err != nil {
+				// 处理创建目录的错误
+				appG.Response(http.StatusInternalServerError, "创建目录失败", err)
+				return
+			}
+		}
 		if err := c.SaveUploadedFile(file, dst); err != nil {
 			appG.Response(http.StatusInternalServerError, "文件保存到服务器失败", err)
 			return
