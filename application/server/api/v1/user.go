@@ -69,6 +69,11 @@ func UserRegister(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+type userLoginrRespond struct {
+	ID       string `json:"id"`
+	RealName string `json:"realname"`
+}
+
 // UserLogin  登录
 func UserLogin(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -95,7 +100,11 @@ func UserLogin(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		appG.Response(http.StatusOK, "Login_Success", "user")
+		respondData := userLoginrRespond{
+			ID:       user.ID,
+			RealName: user.RealName,
+		}
+		appG.Response(http.StatusOK, "Login_Success", respondData)
 	}
 }
 
