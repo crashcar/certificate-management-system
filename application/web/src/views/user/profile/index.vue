@@ -14,6 +14,7 @@
           <el-col :span="12">
             <el-form label-position="left" label-width="100px">
               <el-form-item label="用户ID">{{ userInfo.id }}</el-form-item>
+              <el-form-item label="用户姓名">{{ userInfo.realname}}</el-form-item>
               <el-form-item label="手机号码">{{ userInfo.phone }}</el-form-item>
               <el-form-item label="邮箱">{{ userInfo.email }}</el-form-item>
             </el-form>
@@ -66,7 +67,8 @@ export default {
   data() {
     return {
       userInfo: {
-        id: 123, // 示例用户ID
+        id: "", // 示例用户ID
+        realname: '', // 示例姓名
         phone: '1234567890', // 示例手机号码
         email: 'example@example.com' // 示例邮箱
       },
@@ -82,6 +84,12 @@ export default {
       editPasswordDialogVisible: false // 控制修改密码对话框的显示与隐藏
     };
   },
+  created() {
+    this.userInfo.id =window.localStorage.getItem("user_id")
+    this.userInfo.realname =window.localStorage.getItem("user_name")
+  },
+
+
   methods: {
     updateInfo() {
       // 这里实现更新用户信息的逻辑，可调用后端接口进行更新

@@ -115,6 +115,7 @@ export default {
 
             window.localStorage.setItem('user_id', user_id);
             window.localStorage.setItem('user_role', user_role);
+            window.localStorage.setItem('user_name', res.data.realname);
 
 
             this.$router.push({ path: '/user' }); // 为普通用户跳转到用户主页
@@ -130,7 +131,7 @@ export default {
             setTimeout(() => {
               this.id=""
               this.password=""
-            }, 4000);
+            }, 1000);
           }
         }).catch(error => {
           console.log('登录错误:', error);

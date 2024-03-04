@@ -2,7 +2,7 @@
   <div>
     <div class="toolbar">
       <div class="toolbar-right">
-        <el-button type="primary" @click="fresh_my_certificates" plain>刷新</el-button>
+        <el-button type="primary" @click="fresh_Institute_certificates" plain>刷新</el-button>
       </div>
     </div>
     <!-- 表格部分 -->
@@ -11,43 +11,64 @@
         style="width: 100%; margin-left: 10px; margin-right: 10px;"
         :highlight-current-row="true">
       <el-table-column
-          prop="id"
+          prop="certID"
           label="证书编号">
       </el-table-column>
       <el-table-column
-          prop="name"
-          label="证书名称">
-      </el-table-column>
-      <el-table-column
-          prop="type"
+          prop="certType"
           label="证书类型">
       </el-table-column>
       <el-table-column
-          prop="date"
-          label="获得日期">
+          prop="holderID"
+          label="持有者ID">
       </el-table-column>
       <el-table-column
-          prop="issuer"
-          label="颁发机构">
+          prop="holderName"
+          label="持有者姓名">
+      </el-table-column>
+      <el-table-column
+          prop="expiryDate"
+          label="到期日期">
       </el-table-column>
       <el-table-column
           label="操作">
         <template v-slot="scope">
-          <el-button type="success" icon="el-icon-download" @click="downloadCertificate(scope.row.id)">下载</el-button>
+          <el-button type="info" icon="el-icon-info" @click="showDetails(scope.row)" round>详情</el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 详情对话框 -->
+    <el-dialog :visible.sync="detailsDialogVisible" title="证书详情">
+      <el-row v-for="(value, key) in selectedCertificate" :key="key">
+        <el-col :span="6">{{ key }}</el-col>
+        <el-col :span="18">
+          <!-- 判断是否为 "authorityContactInfo"，如果是则展示里面的内容 -->
+          <template v-if="key === 'authorityContactInfo'">
+            <div>{{ value.address }}</div>
+            <div>{{ value.email }}</div>
+            <div>{{ value.phone }}</div>
+          </template>
+          <!-- 如果不是 "authorityContactInfo" 则直接展示值 -->
+          <template v-else>
+            {{ value }}
+          </template>
+        </el-col>
+      </el-row>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {query_user_certificates, user_download_certificate} from '@/api/userCert'
-import {query_institute_certificates} from "@/api/adminCert";
+import { query_institute_certificates } from "@/api/adminCert";
+
 export default {
   name: 'Institute_Certificates',
   data() {
     return {
-      tableData: []
+      tableData: [],
+      detailsDialogVisible: false,
+      selectedCertificate: {}
     }
   },
   watch: {
@@ -61,46 +82,29 @@ export default {
   },
   methods: {
     fresh_Institute_certificates() {
-
-      console.log('query_institute_certificates: ')
+      console.log('query_institute_certificates: ');
       // 这里可以添加查询证书的逻辑
-      const user_id=window.localStorage.getItem('user_id')
-      // TODO
       const queryCertData = {
         issuingAuthority: "CET",
       };
       // 发送查询请求
       query_institute_certificates(queryCertData).then(res => {
         console.log("fresh_Institute_certificates(): POST 请求");
-        console.log(res)
+        console.log(res);
         // 将返回的证书数据赋值给表格数据
         if (res.data != null) {
-          console.log("fresh_Institute_certificates(): 本机构存在已认证的证书")
+          console.log("fresh_Institute_certificates(): 本机构存在已认证的证书");
           this.tableData = res.data;
-        }else{
-          console.log("fresh_Institute_certificates(): 本机构暂不存在认证的证书")
+        } else {
+          console.log("fresh_Institute_certificates(): 本机构暂不存在认证的证书");
         }
       }).catch(error => {
         console.log('查询机构认证证书信息错误:', error);
       });
     },
-    downloadCertificate(certificateId) {
-      // console.log("certificateId: " + certificateId + "")
-      // const userId = window.localStorage.getItem('user_id');
-      // // 发送下载请求
-      // user_download_certificate(userId, certificateId).then(response => {
-      //   const blob = new Blob([response.data], { type: 'application/pdf' });
-      //   const url = window.URL.createObjectURL(blob);
-      //   const link = document.createElement('a');
-      //   link.href = url;
-      //   link.setAttribute('download', 'certificate.pdf');
-      //   document.body.appendChild(link);
-      //   link.click();
-      //   window.URL.revokeObjectURL(url);
-      //   document.body.removeChild(link);
-      // }).catch(error => {
-      //   console.log('downloadCertificate: 下载证书错误:', error);
-      // });
+    showDetails(certificate) {
+      this.selectedCertificate = certificate;
+      this.detailsDialogVisible = true;
     }
   }
 }
