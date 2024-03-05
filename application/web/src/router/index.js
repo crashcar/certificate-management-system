@@ -15,7 +15,11 @@ const routes = [
     component: () => import('@/views/register/index'),
     hidden: true
   },
-
+  {
+    path: '/prove',
+    component: () => import('@/views/prove/index'),
+    hidden: true
+  },
   {
     path: '/user',
     redirect: '/user/certificates',
@@ -84,7 +88,9 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   const userRole = localStorage.getItem('user_role')
-  if (!userRole && to.path !== '/login' && to.path !== '/register') {
+  if(to.path==='/prove'){
+    next()
+  } else if (!userRole && to.path !== '/login' && to.path !== '/register') {
     next('/login')
   } else if (to.meta && to.meta.role && to.meta.role !== userRole) {
     next('/404')

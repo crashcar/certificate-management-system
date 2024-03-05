@@ -15,7 +15,7 @@ import getPageTitle from '@/utils/get-page-title'
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 // 定义一个白名单数组，表示不需要登录即可访问的页面路径。
-const whiteList = ['/login',"/register","/404"] // no redirect whitelist
+const whiteList = ['/login',"/register","/prove","/404"] // no redirect whitelist
 
 
 // 注册全局前置守卫，在路由导航之前执行相关操作。
@@ -45,6 +45,7 @@ router.beforeEach(async (to, from, next) => {
     // 未登录状态的处理逻辑
     console.log("permision.js: user/admin未登录")
     if (whiteList.indexOf(to.path) !== -1) {
+      console.log("permision.js: 白名单路径放行: ", to.path)
       next() // 白名单路径放行
       NProgress.done()
     } else {
