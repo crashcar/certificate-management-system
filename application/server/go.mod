@@ -1,6 +1,5 @@
 module application
-
-go 1.14
+go 1.22
 
 replace github.com/go-kit/kit => github.com/go-kit/kit v0.8.0
 
