@@ -1,0 +1,31 @@
+test:
+  name: CertificateManagementBenchmark
+  description: Benchmark for Certificate Management System
+  workers:
+    type: local
+    number: 2
+  rounds:
+    - label: queryCertByInfos
+      description: Query Certificate by Information
+      txDuration: 60
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 10
+      workload:
+        module: workload/readAsset.js
+        arguments:
+          func: queryCertByInfos
+          args: ["certId", "holderId"]
+    - label: uploadCertOrg
+      description: Upload a new certificate
+      txDuration: 60
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 10
+      workload:
+        module: workload/readAsset.js
+        arguments:
+          func: uploadCertOrg
+          args: ["hashFile", "hashPath", "certID", "holderID", "holderName", "certType", "reviewer", "issueDate", "expiryDate", "issuingAuthority", "phone", "email", "address"]

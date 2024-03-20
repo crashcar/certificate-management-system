@@ -6,8 +6,8 @@ if [[ `uname` == 'Darwin' ]]; then
 fi
 if [[ `uname` == 'Linux' ]]; then
     if [[ `uname -m` == 'x86_64' ]]; then
-        echo "Linux x86_64"
-        export PATH=${PWD}/hyperledger-fabric-linux-amd64-2.5.4/bin:$PATH
+        echo "Linux x86_64 hyperledger-fabric-linux-amd64-2.4.8/bin"
+        export PATH=${PWD}/hyperledger-fabric-linux-amd64-2.4.8/bin:$PATH
     else
         echo "Linux arm64"
         export PATH=${PWD}/hyperledger-fabric-linux-arm64-2.5.4/bin:$PATH

@@ -1,0 +1,84 @@
+{
+    "name": "fabric-network",
+    "version": "2.2",
+    "caliper": {
+        "blockchain": "fabric"
+    },
+    "organizations": {
+        "CERTMAN": {
+            "mspid": "CERTMANMSP",
+            "peers": [
+                "peer0.certman.com"
+            ],
+            "certificateAuthorities": [
+                "ca.certman.com"
+            ]
+        },
+        "CET": {
+            "mspid": "CETMSP",
+            "peers": [
+                "peer0.cet.com"
+            ],
+            "certificateAuthorities": [
+                "ca.cet.com"
+            ]
+        },
+        "NCRE": {
+            "mspid": "NCREMSP",
+            "peers": [
+                "peer0.ncre.com"
+            ],
+            "certificateAuthorities": [
+                "ca.ncre.com"
+            ]
+        }
+    },
+    "orderers": {
+        "orderer.certmanorder.com": {
+            "url": "grpc://orderer.certmanorder.com:7050"
+        }
+    },
+    "peers": {
+        "peer0.certman.com": {
+            "url": "grpc://peer0.certman.com:7051"
+        },
+        "peer0.cet.com": {
+            "url": "grpc://peer0.cet.com:7051"
+        },
+        "peer0.ncre.com": {
+            "url": "grpc://peer0.ncre.com:7051"
+        }
+    },
+    "channels": {
+        "appchannel": {
+            "orderers": [
+                "orderer.certmanorder.com"
+            ],
+            "peers": {
+                "peer0.certman.com": {},
+                "peer0.cet.com": {},
+                "peer0.ncre.com": {}
+            },
+            "chaincodes": [
+                {
+                    "id": "fabric-realty",
+                    "version": "1.0.0"
+                }
+            ]
+        }
+    },
+    "certificateAuthorities": {
+        "ca.certman.com": {
+            "url": "http://ca.certman.com:7054",
+            "caName": "ca-certman"
+        },
+        "ca.cet.com": {
+            "url": "http://ca.cet.com:7054",
+            "caName": "ca-cet"
+        },
+        "ca.ncre.com": {
+            "url": "http://ca.ncre.com:7054",
+            "caName": "ca-ncre"
+        }
+    }
+}
