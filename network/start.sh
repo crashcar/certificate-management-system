@@ -5,9 +5,15 @@ if [[ `uname` == 'Darwin' ]]; then
     export PATH=${PWD}/hyperledger-fabric-darwin-arm64-2.5.4/bin:$PATH
 fi
 if [[ `uname` == 'Linux' ]]; then
-    echo "Linux"
-    export PATH=${PWD}/hyperledger-fabric-linux-arm64-2.5.4/bin:$PATH
+    if [[ `uname -m` == 'x86_64' ]]; then
+        echo "Linux x86_64"
+        export PATH=${PWD}/hyperledger-fabric-linux-amd64-2.5.4/bin:$PATH
+    else
+        echo "Linux arm64"
+        export PATH=${PWD}/hyperledger-fabric-linux-arm64-2.5.4/bin:$PATH
+    fi
 fi
+
 
 echo "一、清理环境"
 ./stop.sh
