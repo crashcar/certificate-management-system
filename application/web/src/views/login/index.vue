@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-form">
       <div class="title-container">
-        <h3 class="title">基于联盟链的电子证书管理系统</h3>
+        <h3 class="title">基于区块链的电子证书验证系统v1.0</h3>
       </div>
       <form @submit.prevent="handleLogin">
         <div class="form-group">

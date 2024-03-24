@@ -40,6 +40,13 @@
             <el-option v-for="type in CET_TYPE" :key="type" :label="type" :value="type"></el-option>
           </el-select>
         </el-form-item>
+
+        <el-form-item label="加密算法">
+          <el-select v-model="encryption" placeholder="请选择加密算法">
+            <el-option v-for="type in encryption_type" :key="type" :label="type" :value="type"></el-option>
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="上传证书">
           <el-upload class="upload-demo" :file-list="fileList" :auto-upload="false" :on-change="handleChange" action="/fake_upload_endpoint" list-type="text" :limit="1">
             <el-button size="small" type="primary">点击上传</el-button>
@@ -87,6 +94,8 @@ export default {
       tableData: [],
       dialogVisible: false,
       CET_TYPE: [],
+      encryption_type: ["SM2","SM4", "其他"],
+      encryption:"",
       cetType: "", // 选中的证书类型
       fileList: [],
       singleDetailInfo:{},
@@ -272,6 +281,7 @@ export default {
             // 将 localhost 替换为 10.201.102.119
             // adjustedData.imageURL = adjustedData.imageURL.replace('localhost', '10.201.102.119');
 
+            console.log("imageURL: "+imageURL)
             this.singleDetailInfo = adjustedData;
             this.detailDialogVisible = true; // 打开详细信息对话框
 

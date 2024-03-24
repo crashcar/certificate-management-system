@@ -131,9 +131,10 @@ export default {
             // 处理获取的申请详情数据
             const { imageURL, ...rest } = res.data;
             const adjustedData = { ...rest, imageURL };
-            // 将 localhost 替换为 10.201.102.119
+                        // 将 localhost 替换为 10.201.102.119
             // adjustedData.imageURL = adjustedData.imageURL.replace('localhost', '10.201.102.119');
 
+            console.log("imageURL: "+imageURL)
             // 更新详情数据并打开详细信息对话框
             this.singleDetailInfo = adjustedData;
             this.detailDialogVisible = true;
